@@ -1,0 +1,25 @@
+include "parent" {
+  path   = find_in_parent_folders()
+  expose = true
+}
+
+terraform {
+  source = "git::git@gitlab.com:holcim-org/americas-core/tools/tf-modules.git///?ref=aws/s3_4.1.2"
+}
+
+  locals {
+  app_name = include.root.inputs.app_name
+}
+
+
+
+
+inputs = {
+
+  name          = "${local.app_name}-input"
+  bucket_key_enabled = true
+  s3_encryption      = "aws:kms"
+
+  }
+
+
