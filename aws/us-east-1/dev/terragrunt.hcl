@@ -1,7 +1,7 @@
-# aws/us-east-1/dev/terragrunt.hcl
+# aws/us-east-1/dev/vpc/terragrunt.hcl
 locals {
   tenant      = "la"  # am | na | la
-  environment = "dev" # prd | qa | dev | sbx | drp |
+  environment = "dev" # prd | qa | dev | sbx | stg |
   account_id  = "745315529340"
   folder      = "dev"
   global      = yamldecode(file(find_in_parent_folders("us-east-1.yaml")))
@@ -46,15 +46,15 @@ variable "aws_region" {
 }
 
 variable "account_id" {
-  description = "AWS account id"
+  description = "Account Id"
   type        = string
   default     = "${local.account_id}"
 }
 
 variable "tf_role" {
-  description = "Role used to access other accounts"
+  description = "Name of the role used to access other accounts"
   type        = string
-  default     = "${local.global.trust_role}"
+  default     = "terraform"
 }
 
 variable "external_id" {
@@ -68,6 +68,7 @@ variable "author" {
   description = "Name of the last user that apply changes"
   type        = string
 }
+
 EOF
 }
 
@@ -79,7 +80,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= ${local.global.aws_version}"
+      version = "~> ${local.global.aws_version}"
     }
   }
 
@@ -94,7 +95,6 @@ generate "provider" {
   contents  = <<EOF
 provider "aws" {
   region = "${local.global.aws_region}"
-
   default_tags {
     tags = {
       deploy-by = var.author
@@ -125,3 +125,5 @@ inputs = {
   app_name    = local.global.app_name
   app_type    = local.global.app_type
 }
+
+
