@@ -11,8 +11,7 @@ terraform {
 inputs = {
 
   name          = "providerp2p-kb"
-  s3_encryption = "aws:kms"
-
+  
 }
 
 

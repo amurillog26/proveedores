@@ -10,9 +10,8 @@ terraform {
 
 inputs = {
 
-  name          = "providerp2p-output"
-  s3_encryption = "aws:kms"
-
+  name          = "providerp2p-query"
+  
 }
 
 
