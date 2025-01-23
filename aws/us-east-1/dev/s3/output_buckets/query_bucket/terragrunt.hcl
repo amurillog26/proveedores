@@ -10,8 +10,8 @@ terraform {
 
 inputs = {
 
-  name          = "providerp2p-query"
-  
+  name = "providerp2p-query"
+
 }
 
 

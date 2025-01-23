@@ -10,8 +10,8 @@ terraform {
 
 inputs = {
 
-  name          = "providerp2p-output"
-  
+  name = "providerp2p-output"
+
 }
 
 
