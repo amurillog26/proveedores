@@ -1,0 +1,28 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowListAndReadOnInputBucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "${vars.input_bucket_arn}",
+        "${vars.input_bucket_arn}/*"
+      ]
+    },
+    {
+      "Sid": "AllowWriteOnOutputBucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "${vars.output_bucket_arn}/*"
+      ]
+    }
+  ]
+}
