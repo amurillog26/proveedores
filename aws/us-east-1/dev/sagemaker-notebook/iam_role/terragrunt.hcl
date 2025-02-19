@@ -9,9 +9,10 @@ terraform {
 }
 
 locals {
+  extra_atlantis_dependencies = [
   assume_role_file_path       = "${get_terragrunt_dir()}/policies/assume-role.tpl"
   template_file_path          = "${get_terragrunt_dir()}/policies/custom-policy.tpl"
-  extra_atlantis_dependencies = [local.assume_role_file_path, local.template_file_path]
+    ]
 
 }
 
@@ -28,7 +29,8 @@ dependency "bucket" {
 inputs = {
   name                  = "providerp2p-role"
   role_description      = "IAM Role for SageMaker Notebook providers PoC"
-  assume_role_file_path = local.assume_role_file_path
+  assume_role_file_path = "${get_terragrunt_dir()}/policies/assume-role.tpl"
+  template_file_path = "${get_terragrunt_dir()}/policies/custom-policy.tpl"
 
 
   template_vars = {
