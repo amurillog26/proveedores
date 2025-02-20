@@ -8,7 +8,7 @@ terraform {
 
 inputs = {
   name         = "mherna16"
-  project      = "poc-ia-providersp2p-la""
+  project      = "poc-ia-providersp2p-la"
   description  = "A Cloud9 environment for user mherna16 working on Latam PoC Rackspace team"
   profile_name = "io-la-prd-cloud9-iascode"
   subnet_id    = "subnet-0071b43fae302e86d"
