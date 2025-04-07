@@ -1,1 +1,27 @@
+# Terragrunt cache
 .terragrunt-cache/
+
+# Terraform state and backups
+*.tfstate
+*.tfstate.backup
+
+# Crash logs
+crash.log
+
+# Terraform variable files (if you store secrets here)
+*.tfvars
+
+# Local override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Plan output
+*.tfplan
+
+# Directory for Terraform providers
+.terraform/
+
+# Terraform lock file
+.terraform.lock.hcl
