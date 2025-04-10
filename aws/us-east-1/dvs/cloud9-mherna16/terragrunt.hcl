@@ -5,7 +5,7 @@ terraform {
   source = "git::https://gitlab.com/holcim-org/americas-core/tools/tf-modules.git///?ref=aws/cloud9_0.2.5"
 }
 
-
+#delete
 inputs = {
   name         = "mherna16"
   project      = "poc-ia-providersp2p-la"
