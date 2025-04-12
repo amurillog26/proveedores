@@ -16,7 +16,7 @@ dependency "lambda_function" {
 }
 
 dependency "kb_bucket" {
-  config_path = "../s3/output_buckets/kb_bucket"
+  config_path = "../s3/kb_bucket"
 
   mock_outputs = {
     bucket_arn = "arn:aws:s3:::mock-kb-bucket"
