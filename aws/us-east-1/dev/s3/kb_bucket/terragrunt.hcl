@@ -9,7 +9,7 @@ terraform {
 
 
 inputs = {
-  name          = "providerp2p-input"
+  name = "providerp2p-kb-input"  
   s3_versioning = "Disabled"
   s3_encryption = "aws:kms"
 }

@@ -9,9 +9,5 @@ terraform {
 
 
 inputs = {
-
-  name = "providerp2p-kb"
-
+  name = "providerp2p-athena-results"
 }
-
-
