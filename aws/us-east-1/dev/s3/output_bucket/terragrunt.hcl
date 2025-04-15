@@ -20,3 +20,5 @@ inputs = {
   s3_versioning = "Disabled"
   s3_encryption = "aws:kms"
 }
+
+
