@@ -3,6 +3,12 @@ include "parent" {
   expose = true
 }
 
+locals {
+  global   = include.parent.locals.global
+  app_name = local.global.app_name
+  project  = local.global.project
+}
+
 terraform {
   source = "git::git@gitlab.com:holcim-org/americas-core/tools/tf-modules.git///?ref=aws/s3_4.1.2"
 }
