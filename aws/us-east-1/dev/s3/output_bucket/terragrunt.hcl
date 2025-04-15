@@ -9,10 +9,7 @@ terraform {
 
 
 inputs = {
-
-  name = "providerp2p-output"
+  name = "${local.app_name}-output"
   s3_versioning = "Disabled"
   s3_encryption = "aws:kms"
 }
-
-
