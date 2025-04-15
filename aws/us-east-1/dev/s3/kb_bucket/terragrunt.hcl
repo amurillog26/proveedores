@@ -4,7 +4,7 @@ include "parent" {
 }
 
 locals {
-  global   = include.parent.local.global
+  global   = include.parent.locals.global
   app_name = local.global.app_name
   project  = local.global.project
 }
