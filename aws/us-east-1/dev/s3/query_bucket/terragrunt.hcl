@@ -16,7 +16,7 @@ terraform {
 
 
 inputs = {
-  name = "${locals.app_name}-query"
+  name = "${local.app_name}-query"
   s3_versioning = "Disabled"
   s3_encryption = "aws:kms"
 }
