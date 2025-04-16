@@ -14,7 +14,7 @@ locals {
 }
 
 inputs = {
-  name        = "${local.app_name}-glue"
+  name        = "${local.app_name}-gluej"
   db_name     = "${local.app_name}"
   description = "Glue database for P2P Athena queries"
 }
