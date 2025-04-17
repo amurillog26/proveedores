@@ -28,18 +28,21 @@ locals {
   policy_file_path      = "${get_terragrunt_dir()}/policies/lambda-policy.tpl"
   assume_role_file_path = "${get_terragrunt_dir()}/policies/assume-role.tpl"
   app_name              = local.global.app_name
-  source_code_path      = "${get_terragrunt_dir()}/src"
 }
 inputs = {
   # Basic Lambda configuration
   name        = "${local.app_name}-athena-query-lambda"
   description = "Lambda function for processing Athena queries"
   
-  # Lambda code configuration
-  source_code_path = local.source_code_path
-  runtime_path     = "node_modules"
-  buildcmd         = "npm install"
-  excludes         = ["**/.git/**", "**/.idea/**", "**/node_modules/.bin/**"]
+  # Usar un archivo ZIP precompilado en lugar de generar uno
+  # Necesitas proporcionar un archivo function.zip o archivo ZIP preexistente
+  filename = "function.zip"  
+  
+  # Desactivar la generación del código fuente
+  source_code_path = null
+  
+  # Deshabilitar el uso de S3 para el código
+  from_s3_object = false
   
   # Handler and runtime settings
   handler_name = "index.handler"
@@ -59,14 +62,12 @@ inputs = {
     LOG_LEVEL       = "info"
   }
   
-  # Disable el uso de KMS para evitar errores con SSM
-  kms_cwlogs_arn = ""  # Proporciona un ARN directo si lo tienes
-  kms_lmb_arn = ""     # Proporciona un ARN directo si lo tienes
+  # FUNDAMENTAL: Desactivar completamente el uso de KMS
+  use_kms = false  # Si el módulo soporta esta variable
   
-  # Si no estás seguro de tener los parámetros SSM correctos, usa valores falsos
-  # y configura las variables para evitar búsquedas de SSM
-  ssm_kms_cwlogs = "/dummy/path/to/avoid/error"
-  ssm_kms_lmb = "/dummy/path/to/avoid/error"
+  # Configuraciones adicionales para evitar problemas con KMS
+  kms_cwlogs_arn = " "  # Espacio en blanco en lugar de cadena vacía
+  kms_lmb_arn = " "     # Espacio en blanco en lugar de cadena vacía
   
   # IAM configuration
   policy_file_name = local.policy_file_path
@@ -75,6 +76,8 @@ inputs = {
       input_bucket_arn  = "arn:aws:s3:::${dependency.input_bucket.outputs.bucket}"
       kb_bucket_arn     = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
       query_bucket_arn  = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}"
+      # Para resolver el problema con kms_key_arn en tu plantilla
+      kms_key_arn       = "arn:aws:kms:us-east-1:*:key/*"
     }
   }
   
@@ -83,7 +86,7 @@ inputs = {
   # CloudWatch logs configuration
   cloudwatch_log_retention_in_days = 30
   
-  # Event triggers - e.g., triggered by S3 uploads
+  # Event triggers
   allowed_triggers = {
     S3Upload = {
       service    = "s3"
