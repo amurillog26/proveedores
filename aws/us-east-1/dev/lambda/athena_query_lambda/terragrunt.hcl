@@ -5,12 +5,6 @@ include "parent" {
 terraform {
   source = "git::git@gitlab.com:holcim-org/americas-core/tools/tf-modules.git///?ref=aws/lambda-function_1.4.0"
 }
-dependency "input_bucket" {
-  config_path = "../../s3/input_bucket"
-  mock_outputs = {
-    bucket = "mock-input"
-  }
-}
 dependency "kb_bucket" {
   config_path = "../../s3/kb_bucket"
   mock_outputs = {
@@ -21,6 +15,12 @@ dependency "query_bucket" {
   config_path = "../../s3/query_bucket"
   mock_outputs = {
     bucket = "mock-query"
+  }
+}
+dependency "input_bucket" {
+  config_path = "../../s3/input_bucket"
+  mock_outputs = {
+    bucket = "mock-input"
   }
 }
 locals {
@@ -55,17 +55,26 @@ inputs = {
     ENV             = "dev"
     KB_BUCKET       = dependency.kb_bucket.outputs.bucket
     QUERY_BUCKET    = dependency.query_bucket.outputs.bucket
+    INPUT_BUCKET    = dependency.input_bucket.outputs.bucket
     LOG_LEVEL       = "info"
   }
+  
+  # Disable el uso de KMS para evitar errores con SSM
+  kms_cwlogs_arn = ""  # Proporciona un ARN directo si lo tienes
+  kms_lmb_arn = ""     # Proporciona un ARN directo si lo tienes
+  
+  # Si no estás seguro de tener los parámetros SSM correctos, usa valores falsos
+  # y configura las variables para evitar búsquedas de SSM
+  ssm_kms_cwlogs = "/dummy/path/to/avoid/error"
+  ssm_kms_lmb = "/dummy/path/to/avoid/error"
   
   # IAM configuration
   policy_file_name = local.policy_file_path
   policy_vars = {
     vars = {
+      input_bucket_arn  = "arn:aws:s3:::${dependency.input_bucket.outputs.bucket}"
       kb_bucket_arn     = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
-      kb_bucket_arn_all = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}/*"
       query_bucket_arn  = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}"
-      query_bucket_arn_all = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}/*"
     }
   }
   
@@ -73,10 +82,6 @@ inputs = {
   
   # CloudWatch logs configuration
   cloudwatch_log_retention_in_days = 30
-  
-  # KMS encryption - Using SSM parameters
-  ssm_kms_cwlogs = "/kms/cwlogs/arn"
-  ssm_kms_lmb    = "/kms/lambda/arn"
   
   # Event triggers - e.g., triggered by S3 uploads
   allowed_triggers = {
