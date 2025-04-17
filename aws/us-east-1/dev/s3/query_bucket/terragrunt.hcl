@@ -3,6 +3,7 @@ include "parent" {
   expose = true
 }
 
+
 locals {
   global   = include.parent.locals.global
   app_name = local.global.app_name
@@ -15,9 +16,8 @@ terraform {
 
 
 inputs = {
-  name          = "${local.app_name}-input"
+  name = "${local.app_name}-query"
   s3_versioning = "Disabled"
   s3_encryption = "aws:kms"
 }
-
 

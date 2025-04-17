@@ -15,7 +15,7 @@ terraform {
 
 
 inputs = {
-  name          = "${local.app_name}-input"
+  name = "${local.app_name}-athena-results"
   s3_versioning = "Disabled"
   s3_encryption = "aws:kms"
 }
