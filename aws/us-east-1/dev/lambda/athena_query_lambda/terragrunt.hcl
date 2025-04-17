@@ -1,47 +1,42 @@
-include {
-  path = find_in_parent_folders()
+include "parent" {
+  path   = find_in_parent_folders()
+  expose = true
 }
-
 terraform {
   source = "git::git@gitlab.com:holcim-org/americas-core/tools/tf-modules.git///?ref=aws/lambda-function_1.4.0"
 }
-
-locals {
-  # Make sure these extra_atlantis_dependencies paths match your actual file structure
-  extra_atlantis_dependencies = [
-    "${get_terragrunt_dir()}/policies/assume-role.tpl",
-    "${get_terragrunt_dir()}/policies/lambda-policy.tpl"
-  ]
-}
-
-# Dependency on S3 bucket
 dependency "input_bucket" {
-  config_path = "${get_parent_terragrunt_dir()}/s3/input_bucket"
-
-  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "fmt", "show"]
+  config_path = "../../s3/input_bucket"
   mock_outputs = {
-    arn = "fake-bucket_arn"
-    id  = "fake-bucket-id"
+    bucket = "mock-input"
   }
 }
-
-dependency "output_bucket" {
-  config_path = "${get_parent_terragrunt_dir()}/s3/output_bucket"
-
-  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "fmt", "show"]
+dependency "kb_bucket" {
+  config_path = "../../s3/kb_bucket"
   mock_outputs = {
-    arn = "fake-output-bucket_arn"
-    id  = "fake-output-bucket-id"
+    bucket = "mock-kb"
   }
 }
-
+dependency "query_bucket" {
+  config_path = "../../s3/query_bucket"
+  mock_outputs = {
+    bucket = "mock-query"
+  }
+}
+locals {
+  global                = include.parent.locals.global
+  policy_file_path      = "${get_terragrunt_dir()}/policies/lambda-policy.tpl"
+  assume_role_file_path = "${get_terragrunt_dir()}/policies/assume-role.tpl"
+  app_name              = local.global.app_name
+  source_code_path      = "${get_terragrunt_dir()}/src"
+}
 inputs = {
   # Basic Lambda configuration
-  name        = "processor-lambda"
-  description = "Lambda function for processing input data"
+  name        = "${local.app_name}-athena-query-lambda"
+  description = "Lambda function for processing Athena queries"
   
   # Lambda code configuration
-  source_code_path = "${get_terragrunt_dir()}/src"
+  source_code_path = local.source_code_path
   runtime_path     = "node_modules"
   buildcmd         = "npm install"
   excludes         = ["**/.git/**", "**/.idea/**", "**/node_modules/.bin/**"]
@@ -58,21 +53,23 @@ inputs = {
   # Environment variables
   env_variables = {
     ENV             = "dev"
-    INPUT_BUCKET    = dependency.input_bucket.outputs.id
-    OUTPUT_BUCKET   = dependency.output_bucket.outputs.id
+    KB_BUCKET       = dependency.kb_bucket.outputs.bucket
+    QUERY_BUCKET    = dependency.query_bucket.outputs.bucket
     LOG_LEVEL       = "info"
   }
   
-  # IAM configuration - create a new role with policies
-  policy_file_name = "${get_terragrunt_dir()}/policies/lambda-policy.tpl"
+  # IAM configuration
+  policy_file_name = local.policy_file_path
   policy_vars = {
     vars = {
-      input_bucket_arn  = dependency.input_bucket.outputs.arn
-      output_bucket_arn = dependency.output_bucket.outputs.arn
+      kb_bucket_arn     = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
+      kb_bucket_arn_all = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}/*"
+      query_bucket_arn  = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}"
+      query_bucket_arn_all = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}/*"
     }
   }
   
-  assume_role_file_name = "${get_terragrunt_dir()}/policies/assume-role.tpl"
+  assume_role_file_name = local.assume_role_file_path
   
   # CloudWatch logs configuration
   cloudwatch_log_retention_in_days = 30
@@ -85,7 +82,7 @@ inputs = {
   allowed_triggers = {
     S3Upload = {
       service    = "s3"
-      source_arn = dependency.input_bucket.outputs.arn
+      source_arn = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
     }
   }
   
