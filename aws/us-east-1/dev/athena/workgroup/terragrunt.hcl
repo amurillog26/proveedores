@@ -14,7 +14,7 @@ terraform {
 
 
 dependency "athena_results_bucket" {
-  config_path = "../../s3/output_buckets/athena_results_bucket"
+  config_path = "../../s3/athena_results_bucket"
 
   mock_outputs = {
     athena_results_bucket_output = "mock-athena_results_bucket-output"
