@@ -35,7 +35,6 @@ inputs = {
   description = "Lambda function for processing Athena queries"
   
   # Usar un archivo ZIP precompilado en lugar de generar uno
-  # Necesitas proporcionar un archivo function.zip o archivo ZIP preexistente
   filename = "function.zip"  
   
   # Desactivar la generación del código fuente
@@ -62,12 +61,13 @@ inputs = {
     LOG_LEVEL       = "info"
   }
   
-  # FUNDAMENTAL: Desactivar completamente el uso de KMS
-  use_kms = false  # Si el módulo soporta esta variable
+  # Usar un ARN KMS válido - puedes usar un ARN real si lo tienes
+  kms_cwlogs_arn = "arn:aws:kms:us-east-1:123456789012:key/dummy-key-id" 
+  kms_lmb_arn = "arn:aws:kms:us-east-1:123456789012:key/dummy-key-id"    
   
-  # Configuraciones adicionales para evitar problemas con KMS
-  kms_cwlogs_arn = " "  # Espacio en blanco en lugar de cadena vacía
-  kms_lmb_arn = " "     # Espacio en blanco en lugar de cadena vacía
+  # Usar parámetros SSM que existan o que sean ignorados
+  ssm_kms_cwlogs = "/dummy/path"
+  ssm_kms_lmb = "/dummy/path"
   
   # IAM configuration
   policy_file_name = local.policy_file_path
@@ -76,8 +76,7 @@ inputs = {
       input_bucket_arn  = "arn:aws:s3:::${dependency.input_bucket.outputs.bucket}"
       kb_bucket_arn     = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
       query_bucket_arn  = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}"
-      # Para resolver el problema con kms_key_arn en tu plantilla
-      kms_key_arn       = "arn:aws:kms:us-east-1:*:key/*"
+      kms_key_arn       = "arn:aws:kms:us-east-1:123456789012:key/dummy-key-id"
     }
   }
   
