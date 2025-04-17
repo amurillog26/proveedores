@@ -41,7 +41,7 @@
         "kms:Decrypt",
         "kms:GenerateDataKey*"
       ],
-      "Resource": "*"
+      "Resource": "${vars.kms_key_arn}"
     }
   ]
 }
