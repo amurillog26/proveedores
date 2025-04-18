@@ -14,6 +14,6 @@ locals {
 
 inputs = {
   lf_tags = {
-    project = [local.project, "poc-ia-providersp2p-la"]
+    project = ["poc-ia-providersp2p-la"]
   }
 }

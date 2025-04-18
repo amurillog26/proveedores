@@ -18,6 +18,6 @@ inputs = {
   db_name     = "${local.app_name}"
   description = "Glue database for P2P Athena queries"
   lf_tags = {
-    project = ["poc-ia-providersp2p-la"]  
+    project = "poc-ia-providersp2p-la"
   }
 }

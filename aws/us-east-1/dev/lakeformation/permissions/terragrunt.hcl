@@ -37,7 +37,7 @@ inputs = {
       resource_type = "DATABASE"
       lf_tags = {
         project = {
-          values = ["poc-ia-providersp2p-la"]  # Usa el valor específico que necesitas
+          values = ["poc-ia-providersp2p-la"]  # Esto es correcto como array
         }
       }
     }
@@ -48,7 +48,7 @@ inputs = {
       resource_type = "TABLE"
       lf_tags = {
         project = {
-          values = ["poc-ia-providersp2p-la"]  # Usa el valor específico que necesitas
+          values = ["poc-ia-providersp2p-la"]  # Esto es correcto como array
         }
       }
     }
