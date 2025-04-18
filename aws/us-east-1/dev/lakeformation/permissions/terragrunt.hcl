@@ -7,13 +7,21 @@ terraform {
   source = "git::git@gitlab.com:holcim-adc/americas-core/tools/tf-modules.git//modules/dlake_permissions?ref=aws/lakeformation_0.1.0"
 }
 
+# Dependencia del rol IAM
 dependency "iam_oidc_role" {
   config_path = "../../athena/iam_role"
 }
 
-# Añade esta dependencia a las LF-Tags
+# Dependencia de las tags
 dependency "lf_tags" {
-  config_path = "../tags"  # Ajusta la ruta según tu estructura
+  config_path = "../tags"
+  skip_outputs = true
+}
+
+# Si los permisos dependen del catálogo Glue
+dependency "glue_catalog" {
+  config_path = "../../athena/glue_catalog"
+  skip_outputs = true
 }
 
 locals {
@@ -29,7 +37,7 @@ inputs = {
       resource_type = "DATABASE"
       lf_tags = {
         project = {
-          values = [local.project]
+          values = ["poc-ia-providersp2p-la"]  # Usa el valor específico que necesitas
         }
       }
     }
@@ -40,9 +48,10 @@ inputs = {
       resource_type = "TABLE"
       lf_tags = {
         project = {
-          values = [local.project]
+          values = ["poc-ia-providersp2p-la"]  # Usa el valor específico que necesitas
         }
       }
     }
   }
+  # Si tienes s3_location_permissions, mantenlos igual
 }
