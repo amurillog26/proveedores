@@ -23,19 +23,35 @@ dependency "input_bucket" {
     bucket = "mock-input"
   }
 }
+
+dependency "cwlogs_kms" {
+  config_path = "../../kms/cwlogs_kms"
+  mock_outputs = {
+    arn = "arn:aws:kms:us-east-1:123456789012:key/mock-key-id"
+  }
+}
+
+dependency "lambda_kms" {
+  config_path = "../../kms/lambda_kms"
+  mock_outputs = {
+    arn = "arn:aws:kms:us-east-1:123456789012:key/mock-key-id"
+  }
+}
+
 locals {
   global                = include.parent.locals.global
   policy_file_path      = "${get_terragrunt_dir()}/policies/lambda-policy.tpl"
   assume_role_file_path = "${get_terragrunt_dir()}/policies/assume-role.tpl"
   app_name              = local.global.app_name
 }
+
 inputs = {
-  # Basic Lambda configuration
+  # Configuración básica de Lambda
   name        = "${local.app_name}-athena-query-lambda"
   description = "Lambda function for processing Athena queries"
   
-  # Usar un archivo ZIP precompilado en lugar de generar uno
-  filename = "function.zip"  
+  # Usar el archivo ZIP en la raíz del directorio
+  filename = "${get_terragrunt_dir()}/funtions.zip"
   
   # Desactivar la generación del código fuente
   source_code_path = null
@@ -43,7 +59,7 @@ inputs = {
   # Deshabilitar el uso de S3 para el código
   from_s3_object = false
   
-  # Handler and runtime settings
+  # Handler y configuración del runtime
   handler_name = "index.handler"
   lambda_settings = {
     runtime       = "nodejs18.x"
@@ -52,7 +68,7 @@ inputs = {
     memory_size   = 256
   }
   
-  # Environment variables
+  # Variables de entorno
   env_variables = {
     ENV             = "dev"
     KB_BUCKET       = dependency.kb_bucket.outputs.bucket
@@ -61,28 +77,24 @@ inputs = {
     LOG_LEVEL       = "info"
   }
   
-  # Usar un ARN KMS válido - puedes usar un ARN real si lo tienes
-  kms_cwlogs_arn = "arn:aws:kms:us-east-1:123456789012:key/dummy-key-id" 
-  kms_lmb_arn = "arn:aws:kms:us-east-1:123456789012:key/dummy-key-id"    
+  # Usar las claves KMS reales
+  kms_cwlogs_arn = dependency.cwlogs_kms.outputs.arn
+  kms_lmb_arn = dependency.lambda_kms.outputs.arn
   
-  # Usar parámetros SSM que existan o que sean ignorados
-  ssm_kms_cwlogs = "/dummy/path"
-  ssm_kms_lmb = "/dummy/path"
-  
-  # IAM configuration
+  # Configuración IAM
   policy_file_name = local.policy_file_path
   policy_vars = {
     vars = {
       input_bucket_arn  = "arn:aws:s3:::${dependency.input_bucket.outputs.bucket}"
       kb_bucket_arn     = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
       query_bucket_arn  = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}"
-      kms_key_arn       = "arn:aws:kms:us-east-1:123456789012:key/dummy-key-id"
+      kms_key_arn       = dependency.lambda_kms.outputs.arn
     }
   }
   
   assume_role_file_name = local.assume_role_file_path
   
-  # CloudWatch logs configuration
+  # Configuración de logs de CloudWatch
   cloudwatch_log_retention_in_days = 30
   
   # Event triggers
@@ -93,10 +105,10 @@ inputs = {
     }
   }
   
-  # Additional configuration
+  # Configuración adicional
   ephemeral_storage = 512  # MB
   publish           = true
   
-  # Enable X-Ray tracing
+  # Habilitar X-Ray tracing
   tracing_mode = "Active"
 }
