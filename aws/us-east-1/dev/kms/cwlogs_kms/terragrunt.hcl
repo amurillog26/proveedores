@@ -15,25 +15,38 @@ inputs = {
   name        = "${local.global.app_name}-cwlogs-kms"
   description = "KMS key for CloudWatch Logs encryption"
   
-  # Configuración básica de la clave KMS
+  # Configuración básica
   key_enabled               = true
   enable_key_rotation       = true
   deletion_window_in_days   = 7
   custom_alias_name         = "alias/${local.global.app_name}-cwlogs"
   
-  # Crear parámetro SSM para almacenar el ARN de la clave
+  # Crear parámetro SSM
   create_ssm_param           = true
   custom_ssm_alias_arn_name  = "def-kms-cwlogs"
   
-  # Política de la clave
+  # Política de clave simplificada
+  # Usando servicios AWS en lugar de roles específicos
   enable_default_policy      = true
-  key_users = [
-    "arn:aws:iam::${local.global.account_id}:role/aws-service-role/logs.amazonaws.com/AWSServiceRoleForLogDelivery",
-    "arn:aws:iam::${local.global.account_id}:role/${local.global.app_name}-athena-query-lambda"
-  ]
   
-  # Administradores de la clave
-  key_administrators = [
-    "arn:aws:iam::${local.global.account_id}:role/Admin"
+  # Política amplia para permitir que los servicios necesarios accedan a la clave
+  additional_iam_statements = [
+    {
+      sid = "AllowCloudWatchLogs"
+      actions = [
+        "kms:Encrypt*",
+        "kms:Decrypt*",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:Describe*"
+      ]
+      resources = ["*"]
+      principals = [
+        {
+          type = "Service"
+          identifiers = ["logs.amazonaws.com"]
+        }
+      ]
+    }
   ]
 }
