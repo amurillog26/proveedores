@@ -4,7 +4,7 @@ include "root" {
 }
 
 terraform {
-  source = "../../tf-modules/glue-database"
+  source = "../../../../../tf-modules/glue-database"
 }
 
 locals {
