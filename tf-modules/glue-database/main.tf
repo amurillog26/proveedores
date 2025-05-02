@@ -5,7 +5,7 @@ locals {
   database_name = var.custom_db_name ? var.db_name : "${var.db_name}-db"
   tags = merge(
     {
-      Name = local.database_name,
+      Name        = local.database_name,
       Environment = var.environment
     },
     var.tags
