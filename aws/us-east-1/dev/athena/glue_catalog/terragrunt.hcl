@@ -9,7 +9,7 @@ terraform {
 
 locals {
   global   = include.root.locals.global
-  app_name = local.global.app_name
+  app_name = "io-la-dev-providerp2p"
   project  = local.global.project
 }
 
