@@ -4,6 +4,7 @@ include "root" {
   expose = true
 }
 
+#deleting sage maker intance
 terraform {
   source = "git::git@gitlab.com:holcim-org/americas-core/tools/tf-modules.git///?ref=aws/sagemaker-notebook_2.0.0"
 }
