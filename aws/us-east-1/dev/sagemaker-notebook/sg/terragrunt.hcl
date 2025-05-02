@@ -3,7 +3,7 @@ include "root" {
   expose = true
 }
 
-#deleting sg
+#deleting sgroup
 
 terraform {
   source = "git::git@gitlab.com:holcim-org/americas-core/tools/tf-modules.git//?ref=aws/secgroup_2.0.1"
