@@ -4,7 +4,7 @@ include "root" {
 }
 
 terraform {
-  source = "git::git@gitlab.com:holcim-org/americas-core/tools/tf-modules.git///?ref=aws/glue-database_0.1.1"
+  source = "../../tf-modules/glue-database"
 }
 
 locals {
