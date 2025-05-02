@@ -3,7 +3,7 @@ include "root" {
   expose = true
 }
 
-
+#deleting iam role
 terraform {
   source = "git::git@gitlab.com:holcim-org/americas-core/tools/tf-modules.git///?ref=aws/iamrole_6.1.0"
 }
