@@ -13,8 +13,8 @@ locals {
   account_id     = local.global.account_id
   external_id    = local.global.external_id
   trust_role     = local.global.trust_role
-  collection_name = "${local.app_name}-bedrock-collection"
-  vector_index_name = "${local.app_name}-kb-index"
+  collection_name = "${local.app_name}-kb-coll"
+  vector_index_name = "${local.app_name}-kb-idx"
 }
 
 inputs = {
@@ -33,14 +33,14 @@ inputs = {
   
   # OpenSearch Serverless configuration
   oass_collection_name = local.collection_name
-  oass_collection_desc = "OpenSearch collection for P2P Bedrock Knowledge Base"
+  oass_collection_desc = "OpenSearch collection for P2P Bedrock KB"
   oass_collection_type = "VECTORSEARCH"
   
-  # Security policies
-  oass_network_security_policy_name = "${local.collection_name}-network-policy"
-  oass_encryption_policy_name = "${local.collection_name}-encryption-policy"
-  oass_data_access_policy_name = "${local.collection_name}-access-policy"
-  oass_data_access_policy_desc = "Data access policy for P2P Bedrock Knowledge Base"
+  # Security policies - SHORTENED NAMES to be under 32 characters
+  oass_network_security_policy_name = "${local.app_name}-network-policy"
+  oass_encryption_policy_name = "${local.app_name}-encrypt-policy"
+  oass_data_access_policy_name = "${local.app_name}-access-policy"
+  oass_data_access_policy_desc = "Data access policy for P2P Bedrock KB"
   
   # Vector configuration
   vector_index_name = local.vector_index_name
