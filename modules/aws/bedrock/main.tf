@@ -46,45 +46,45 @@ resource "aws_opensearchserverless_security_policy" "encryption_policy" {
   })
 }
 
-resource "aws_opensearchserverless_access_policy" "data_access_policy" {
-  name        = var.oass_data_access_policy_name
-  description = var.oass_data_access_policy_desc
-  type        = "data"
+# resource "aws_opensearchserverless_access_policy" "data_access_policy" {
+#   name        = var.oass_data_access_policy_name
+#   description = var.oass_data_access_policy_desc
+#   type        = "data"
 
-  policy = jsonencode([
-    {
-      Rules = [
-        {
-          ResourceType = "index",
-          Resource = [
-            "index/${var.oass_collection_name}/*"
-          ],
-          Permission = [
-            "aoss:CreateIndex",
-            "aoss:DeleteIndex",
-            "aoss:DescribeIndex",
-            "aoss:ReadDocument",
-            "aoss:UpdateIndex",
-            "aoss:WriteDocument"
-          ]
-        },
-        {
-          ResourceType = "collection",
-          Resource     = ["collection/${var.oass_collection_name}"]
-          Permission = [
-            "aoss:DescribeCollectionItems",
-            "aoss:CreateCollectionItems",
-            "aoss:UpdateCollectionItems"
-          ]
-        }
-      ],
-      Principal = [
-        var.kb_role_arn,
-        join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role])
-      ]
-    }
-  ])
-}
+#   policy = jsonencode([
+#     {
+#       Rules = [
+#         {
+#           ResourceType = "index",
+#           Resource = [
+#             "index/${var.oass_collection_name}/*"
+#           ],
+#           Permission = [
+#             "aoss:CreateIndex",
+#             "aoss:DeleteIndex",
+#             "aoss:DescribeIndex",
+#             "aoss:ReadDocument",
+#             "aoss:UpdateIndex",
+#             "aoss:WriteDocument"
+#           ]
+#         },
+#         {
+#           ResourceType = "collection",
+#           Resource     = ["collection/${var.oass_collection_name}"]
+#           Permission = [
+#             "aoss:DescribeCollectionItems",
+#             "aoss:CreateCollectionItems",
+#             "aoss:UpdateCollectionItems"
+#           ]
+#         }
+#       ],
+#       Principal = [
+#         var.kb_role_arn,
+#         join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role])
+#       ]
+#     }
+#   ])
+# }
 
 # Create or use the IAM role
 resource "aws_iam_role" "bedrock_kb_role" {
@@ -176,7 +176,7 @@ resource "opensearch_index" "kb_vector_index" {
   force_destroy                  = true
   depends_on = [
     aws_opensearchserverless_collection.this,
-    aws_opensearchserverless_access_policy.data_access_policy,
+    # aws_opensearchserverless_access_policy.data_access_policy,
     time_sleep.wait_for_new_role_policy
     # time_sleep.wait_for_existing_role_policy
   ]
