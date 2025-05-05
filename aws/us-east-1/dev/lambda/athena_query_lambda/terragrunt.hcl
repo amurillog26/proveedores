@@ -24,20 +24,6 @@ dependency "input_bucket" {
   }
 }
 
-dependency "cwlogs_kms" {
-  config_path = "../../kms/cwlogs_kms"
-  mock_outputs = {
-    arn = "arn:aws:kms:us-east-1:123456789012:key/mock-key-id"
-  }
-}
-
-dependency "lambda_kms" {
-  config_path = "../../kms/lambda_kms"
-  mock_outputs = {
-    arn = "arn:aws:kms:us-east-1:123456789012:key/mock-key-id"
-  }
-}
-
 locals {
   global                = include.parent.locals.global
   policy_file_path      = "${get_terragrunt_dir()}/policies/lambda-policy.tpl"
@@ -78,8 +64,7 @@ inputs = {
   }
   
   # Usar las claves KMS reales
-  kms_cwlogs_arn = dependency.cwlogs_kms.outputs.arn
-  kms_lmb_arn = dependency.lambda_kms.outputs.arn
+  kms_lmb_arn = "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
   
   # Configuración IAM
   policy_file_name = local.policy_file_path
@@ -88,7 +73,7 @@ inputs = {
       input_bucket_arn  = "arn:aws:s3:::${dependency.input_bucket.outputs.bucket}"
       kb_bucket_arn     = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
       query_bucket_arn  = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}"
-      kms_key_arn       = dependency.lambda_kms.outputs.arn
+      kms_key_arn       = "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
     }
   }
   
