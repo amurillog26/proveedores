@@ -98,7 +98,7 @@ resource "aws_iam_role" "bedrock_kb_role" {
 resource "aws_iam_role_policy" "bedrock_kb_policy" {
   count  = var.create_iam_role ? 1 : 0
   name   = "${var.name}-policy"
-  role   = aws_iam_role.bedrock_kb_role[0].name
+  role  = var.kb_role_name != "" ? var.kb_role_name : "default-role-name" 
   policy = templatefile(var.policy_file_path, var.policy_vars)
 }
 
@@ -122,12 +122,11 @@ resource "aws_iam_role_policy" "bedrock_kb_opensearch_access" {
 # Wait for the role policy to be attached/propagated to the role before creating the collection
 resource "time_sleep" "wait_for_policy_propagation" {
   create_duration = "20s"
-  depends_on      = [
-    aws_iam_role_policy.bedrock_kb_policy,
-    aws_iam_role_policy.bedrock_kb_opensearch_access
+  depends_on = [
+    aws_iam_role_policy.bedrock_kb_policy[*],  # Use splat operator to handle count
+    aws_iam_role_policy.bedrock_kb_opensearch_access[*]
   ]
 }
-
 # Note that the healthcheck argument is set to false because the
 #client health check does not really work with OpenSearch Serverless.
 provider "opensearch" {
