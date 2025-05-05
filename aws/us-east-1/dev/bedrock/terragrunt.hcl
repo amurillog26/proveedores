@@ -4,7 +4,7 @@ include "root" {
 }
 
 terraform {
-  source = "${get_repo_root()}/tf-modules/bedrock"
+  source = "../../../../../tf-modules/bedrock"
 }
 
 dependency "lambda_function" {
