@@ -179,7 +179,8 @@ resource "opensearch_index" "kb_vector_index" {
   depends_on = [
     aws_opensearchserverless_collection.this,
     aws_opensearchserverless_access_policy.data_access_policy,
-    time_sleep.wait_for_policy_propagation
+    time_sleep.wait_for_new_role_policy,
+    time_sleep.wait_for_existing_role_policy
   ]
 }
 
@@ -211,7 +212,8 @@ resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
 
   tags = module.this.tags
   depends_on = [
-    time_sleep.wait_for_policy_propagation,
+    time_sleep.wait_for_new_role_policy,
+    time_sleep.wait_for_existing_role_policy,
     opensearch_index.kb_vector_index
   ]
 }
