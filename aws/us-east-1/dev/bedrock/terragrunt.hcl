@@ -4,8 +4,9 @@ include "root" {
 }
 
 terraform {
-  source = "${get_repo_root()}/tf-modules/bedrock"
+  source = "${get_terragrunt_dir()}/../../../../../tf-modules/aws/bedrock/"
 }
+
 
 locals {
   global         = include.root.locals.global
