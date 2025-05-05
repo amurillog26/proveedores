@@ -80,8 +80,7 @@ resource "aws_opensearchserverless_access_policy" "data_access_policy" {
       ],
       Principal = [
         var.kb_role_arn,
-        join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role]),
-        join("", ["arn:aws:sts::", var.t_account_id, ":assumed-role/", var.oass_owner_policy_access, "/*"])
+        join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role])
       ]
     }
   ])
