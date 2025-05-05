@@ -131,16 +131,16 @@ resource "time_sleep" "wait_for_new_role_policy" {
 
 # Note that the healthcheck argument is set to false because the
 #client health check does not really work with OpenSearch Serverless.
-# provider "opensearch" {
-#   alias                       = "cc"
-#   url                         = aws_opensearchserverless_collection.this.collection_endpoint
-#   aws_assume_role_arn         = join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role])
-#   aws_assume_role_external_id = var.t_external_id
-#   healthcheck                 = false
-# }
+provider "opensearch" {
+  alias                       = "cc"
+  url                         = aws_opensearchserverless_collection.this.collection_endpoint
+  aws_assume_role_arn         = join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role])
+  aws_assume_role_external_id = var.t_external_id
+  healthcheck                 = false
+}
 
 resource "opensearch_index" "kb_vector_index" {
-  # provider                       = opensearch.cc
+  provider                       = opensearch.cc
   name                           = var.vector_index_name
   number_of_shards               = "2"
   number_of_replicas             = "0"
