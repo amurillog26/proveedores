@@ -3,13 +3,13 @@ resource "aws_opensearchserverless_collection" "this" {
   name        = var.oass_collection_name
   description = var.oass_collection_desc
   type        = var.oass_collection_type
+  tags        = module.this.tags
   depends_on = [
     aws_opensearchserverless_security_policy.network_policy,
     aws_opensearchserverless_security_policy.encryption_policy
   ]
 }
 
-# Network security policy for OpenSearch
 resource "aws_opensearchserverless_security_policy" "network_policy" {
   name        = var.oass_network_security_policy_name
   description = var.oass_collection_desc
@@ -28,7 +28,6 @@ resource "aws_opensearchserverless_security_policy" "network_policy" {
   ])
 }
 
-# Encryption policy for OpenSearch
 resource "aws_opensearchserverless_security_policy" "encryption_policy" {
   name        = var.oass_encryption_policy_name
   description = "Encryption policy using AWS owned key"
@@ -45,7 +44,6 @@ resource "aws_opensearchserverless_security_policy" "encryption_policy" {
   })
 }
 
-# Data access policy for OpenSearch
 resource "aws_opensearchserverless_access_policy" "data_access_policy" {
   name        = var.oass_data_access_policy_name
   description = var.oass_data_access_policy_desc
@@ -80,17 +78,33 @@ resource "aws_opensearchserverless_access_policy" "data_access_policy" {
       ],
       Principal = [
         var.kb_role_arn,
-        "arn:aws:iam::${var.t_account_id}:role/${var.t_tf_role}",
-        "arn:aws:sts::${var.t_account_id}:assumed-role/${var.oass_owner_policy_access}/*"
+        join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role]),
+        join("", ["arn:aws:sts::", var.t_account_id, ":assumed-role/", var.oass_owner_policy_access, "/*"])
       ]
     }
   ])
 }
 
-# Add permissions to access OpenSearch collection
+# Create or use the IAM role
+resource "aws_iam_role" "bedrock_kb_role" {
+  count              = var.create_iam_role ? 1 : 0
+  name               = "${var.name}-role"
+  assume_role_policy = file(var.assume_role_file_path)
+}
+
+# If creating a new role, attach the policy from template
+resource "aws_iam_role_policy" "bedrock_kb_policy" {
+  count  = var.create_iam_role ? 1 : 0
+  name   = "${var.name}-policy"
+  role   = aws_iam_role.bedrock_kb_role[0].name
+  policy = templatefile(var.policy_file_path, var.policy_vars)
+}
+
+# If using existing role, attach the OpenSearch policy
 resource "aws_iam_role_policy" "bedrock_kb_opensearch_access" {
-  name = "AmazonBedrockOSSPolicyForKnowledgeBase"
-  role = var.kb_role_name
+  count  = var.create_iam_role ? 0 : 1
+  name   = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
+  role   = var.kb_role_name
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -103,24 +117,27 @@ resource "aws_iam_role_policy" "bedrock_kb_opensearch_access" {
   })
 }
 
-# Wait for role policy propagation
+# Wait for the role policy to be attached/propagated to the role before creating the collection
 resource "time_sleep" "wait_for_policy_propagation" {
   create_duration = "20s"
-  depends_on      = [aws_iam_role_policy.bedrock_kb_opensearch_access]
+  depends_on      = [
+    aws_iam_role_policy.bedrock_kb_policy,
+    aws_iam_role_policy.bedrock_kb_opensearch_access
+  ]
 }
 
-# Configure OpenSearch provider
+# Note that the healthcheck argument is set to false because the
+#client health check does not really work with OpenSearch Serverless.
 provider "opensearch" {
-  alias                       = "bedrock_collection"
+  alias                       = "cc"
   url                         = aws_opensearchserverless_collection.this.collection_endpoint
-  aws_assume_role_arn         = "arn:aws:iam::${var.t_account_id}:role/${var.t_tf_role}"
+  aws_assume_role_arn         = join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role])
   aws_assume_role_external_id = var.t_external_id
   healthcheck                 = false
 }
 
-# Create OpenSearch index for vector search
 resource "opensearch_index" "kb_vector_index" {
-  provider                       = opensearch.bedrock_collection
+  provider                       = opensearch.cc
   name                           = var.vector_index_name
   number_of_shards               = "2"
   number_of_replicas             = "0"
@@ -156,15 +173,15 @@ resource "opensearch_index" "kb_vector_index" {
   force_destroy                  = true
   depends_on = [
     aws_opensearchserverless_collection.this,
-    aws_opensearchserverless_access_policy.data_access_policy
+    aws_opensearchserverless_access_policy.data_access_policy,
+    time_sleep.wait_for_policy_propagation
   ]
 }
 
-# Create Bedrock Knowledge Base
-resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
+resource "aws_bedrock_knowledge_base" "kb_bedrock" {
   name        = var.name
   description = var.kb_description
-  role_arn    = var.kb_role_arn
+  role_arn    = var.create_iam_role ? aws_iam_role.bedrock_kb_role[0].arn : var.kb_role_arn
 
   knowledge_base_configuration {
     type = var.kb_configuration_type
@@ -186,16 +203,15 @@ resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
     }
   }
 
+  tags = module.this.tags
   depends_on = [
-    aws_iam_role_policy.bedrock_kb_opensearch_access,
     time_sleep.wait_for_policy_propagation,
     opensearch_index.kb_vector_index
   ]
 }
 
-# Create S3 data source for the Knowledge Base
-resource "aws_bedrockagent_data_source" "kb_s3_datasource" {
-  knowledge_base_id = aws_bedrockagent_knowledge_base.kb_bedrock.id
+resource "aws_bedrock_knowledge_base_data_source" "kb_s3_datasource" {
+  knowledge_base_id = aws_bedrock_knowledge_base.kb_bedrock.id
   name              = "${var.name}-datasource"
 
   vector_ingestion_configuration {

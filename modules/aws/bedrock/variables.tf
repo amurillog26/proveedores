@@ -11,11 +11,37 @@ variable "kb_description" {
 variable "kb_role_arn" {
   type        = string
   description = "The ARN of the role to assume when accessing the Knowledge Base"
+  default     = ""
 }
 
 variable "kb_role_name" {
   type        = string
   description = "The name of the role to assume when accessing the Knowledge Base"
+  default     = ""
+}
+
+variable "create_iam_role" {
+  type        = bool
+  description = "Whether to create a new IAM role (true) or use an existing one (false)"
+  default     = false
+}
+
+variable "assume_role_file_path" {
+  type        = string
+  description = "Path to the assume role policy template file"
+  default     = ""
+}
+
+variable "policy_file_path" {
+  type        = string
+  description = "Path to the policy template file"
+  default     = ""
+}
+
+variable "policy_vars" {
+  type        = any
+  description = "Variables to pass to the policy template file"
+  default     = {}
 }
 
 variable "s3_bucket_arn" {
