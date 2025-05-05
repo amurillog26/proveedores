@@ -1,10 +1,10 @@
 include "root" {
-  path   = find_in_parent_folders("dev/terragrunt.hcl")
+  path   = find_in_parent_folders()
   expose = true
 }
 
 terraform {
-  source = "${get_repo_root()}/modules/aws"
+  source = "${get_repo_root()}/tf-modules/bedrock"
 }
 
 dependency "lambda_function" {
@@ -19,7 +19,8 @@ dependency "kb_bucket" {
   config_path = "../s3/kb_bucket"
 
   mock_outputs = {
-    bucket_arn = "arn:aws:s3:::mock-kb-bucket"
+    bucket = "mock-kb-bucket"
+    arn    = "arn:aws:s3:::mock-kb-bucket"
   }
 }
 
@@ -28,129 +29,58 @@ dependency "iam_roles" {
 
   mock_outputs = {
     kb_role_arn    = "arn:aws:iam::123456789012:role/mock-kb-role"
+    kb_role_name   = "mock-kb-role"
     agent_role_arn = "arn:aws:iam::123456789012:role/mock-agent-role"
   }
 }
 
+locals {
+  global       = include.root.locals.global
+  app_name     = local.global.app_name
+  account_id   = local.global.account_id
+  external_id  = local.global.external_id
+  trust_role   = local.global.trust_role
+  collection_name = "${local.app_name}-bedrock-collection"
+  vector_index_name = "${local.app_name}-kb-index"
+}
+
 inputs = {
-  foundation_model       = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-  agent_instruction      = "You are a helpful assistant for querying financial documents."
-  agent_alias_name       = "p2p-bedrock-agent"
-  agent_role_name        = "bedrock-agent-role"
-  agent_role_policies    = ["arn:aws:iam::aws:policy/AmazonBedrockFullAccess", "arn:aws:iam::aws:policy/AWSLambdaRole"]
-  kb_s3_bucket_arn       = dependency.kb_bucket.outputs.arn
-  kb_embedding_model_arn = "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0"
-  guardrails_name        = "p2p-bedrock-guardrails"
-  guardrails_description = "Guardrails for P2P Bedrock Agent"
-
-  opensearch_collection_name        = "p2p-bedrock-collection"
-  opensearch_collection_description = "OpenSearch collection for P2P Bedrock Knowledge Base"
-
-  bedrock_kb_name = "p2p-kb"
-  kb_description  = "Knowledge base for P2P vendor financial inquiries"
-  kb_role_arn     = dependency.iam_roles.outputs.kb_role_arn
-
-  opensearch_index_name = "p2p-kb-index"
-  text_field            = "AMAZON_BEDROCK_TEXT_CHUNK"
-  metadata_field        = "AMAZON_BEDROCK_METADATA"
-  vector_field          = "p2p-bedrock-collection-vector"
+  # Basic information
+  name                = "${local.app_name}-kb"
+  kb_description      = "Knowledge base for P2P vendor financial inquiries"
+  kb_configuration_type = "VECTOR"
   
-  action_group_function_parameters = [
-    {
-      function_name = "account_statement"
-      parameters = [
-        {
-          name        = "provider_code"
-          description = "The provider’s account code"
-          type        = "string"
-          required    = true
-        }
-      ]
-    },
-    {
-      function_name = "invoice_statement"
-      parameters = [
-        {
-          name        = "provider_code"
-          description = "The provider’s account code"
-          type        = "string"
-          required    = true
-        },
-        {
-          name        = "invoice_number"
-          description = "Reference number of the invoice"
-          type        = "string"
-          required    = true
-        },
-        {
-          name        = "country"
-          description = "Country of the provider"
-          type        = "string"
-          required    = false
-        }
-      ]
-    },
-    {
-      function_name = "special_payment_status"
-      parameters = [
-        {
-          name        = "request_number"
-          description = "Special payment request number"
-          type        = "string"
-          required    = true
-        }
-      ]
-    },
-    {
-      function_name = "payment_details"
-      parameters = [
-        {
-          name        = "provider_code"
-          description = "The provider’s account code"
-          type        = "string"
-          required    = true
-        },
-        {
-          name        = "compensation_date"
-          description = "Payment date in dd/mm/yyyy format"
-          type        = "string"
-          required    = true
-        }
-      ]
-    },
-    {
-      function_name = "travel_expenditures"
-      parameters = [
-        {
-          name        = "provider_code"
-          description = "The provider’s account code"
-          type        = "string"
-          required    = true
-        },
-        {
-          name        = "invoice_number"
-          description = "Reference number of the travel expense invoice"
-          type        = "string"
-          required    = true
-        }
-      ]
-    },
-    {
-      function_name = "purchase_delivery_date"
-      parameters = [
-        {
-          name        = "purchase_order"
-          description = "Purchase order number"
-          type        = "string"
-          required    = true
-        },
-        {
-          name        = "purchase_position"
-          description = "Position in the purchase order"
-          type        = "string"
-          required    = true
-        }
-      ]
-    }
-  ]
+  # IAM roles
+  kb_role_arn         = dependency.iam_roles.outputs.kb_role_arn
+  kb_role_name        = dependency.iam_roles.outputs.kb_role_name
+  
+  # S3 bucket for data source
+  s3_bucket_arn       = dependency.kb_bucket.outputs.arn
+  s3_inclusion_prefixes = []  # Add prefixes if needed
+  
+  # OpenSearch Serverless configuration
+  oass_collection_name = local.collection_name
+  oass_collection_desc = "OpenSearch collection for P2P Bedrock Knowledge Base"
+  oass_collection_type = "VECTORSEARCH"
+  
+  # Security policies
+  oass_network_security_policy_name = "${local.collection_name}-network-policy"
+  oass_encryption_policy_name = "${local.collection_name}-encryption-policy"
+  oass_data_access_policy_name = "${local.collection_name}-access-policy"
+  oass_data_access_policy_desc = "Data access policy for P2P Bedrock Knowledge Base"
+  
+  # Vector configuration
+  vector_index_name = local.vector_index_name
+  vector_field = "${local.collection_name}-vector"
+  metadata_field = "AMAZON_BEDROCK_METADATA"
+  text_field = "AMAZON_BEDROCK_TEXT_CHUNK"
+  
+  # Embedding model
+  kb_embedding_model_arn = "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0"
+  kb_model_id = "amazon.titan-embed-text-v2"
+  
+  # OpenSearch provider configuration
+  t_tf_role = local.trust_role
+  t_account_id = local.account_id
+  t_external_id = local.external_id
 }
