@@ -102,22 +102,21 @@ resource "aws_iam_role_policy" "bedrock_kb_policy" {
   policy = templatefile(var.policy_file_path, var.policy_vars)
 }
 
-# If using existing role, attach the OpenSearch policy
-resource "aws_iam_role_policy" "bedrock_kb_opensearch_access" {
-  count  = var.create_iam_role ? 0 : 1
-  name   = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
-  role   = var.kb_role_name
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action   = "aoss:APIAccessAll"
-        Effect   = "Allow"
-        Resource = aws_opensearchserverless_collection.this.arn
-      }
-    ]
-  })
-}
+# resource "aws_iam_role_policy" "bedrock_kb_opensearch_access" {
+#   count  = var.create_iam_role ? 0 : 1
+#   name   = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
+#   role   = var.kb_role_name
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Action   = "aoss:APIAccessAll"
+#         Effect   = "Allow"
+#         Resource = aws_opensearchserverless_collection.this.arn
+#       }
+#     ]
+#   })
+# }
 
 resource "time_sleep" "wait_for_new_role_policy" {
   count           = var.create_iam_role ? 1 : 0
@@ -125,11 +124,11 @@ resource "time_sleep" "wait_for_new_role_policy" {
   depends_on      = [aws_iam_role_policy.bedrock_kb_policy]
 }
 
-resource "time_sleep" "wait_for_existing_role_policy" {
-  count           = var.create_iam_role ? 0 : 1
-  create_duration = "20s"
-  depends_on      = [aws_iam_role_policy.bedrock_kb_opensearch_access]
-}
+# resource "time_sleep" "wait_for_existing_role_policy" {
+#   count           = var.create_iam_role ? 0 : 1
+#   create_duration = "20s"
+#   depends_on      = [aws_iam_role_policy.bedrock_kb_opensearch_access]
+# }
 
 # Note that the healthcheck argument is set to false because the
 #client health check does not really work with OpenSearch Serverless.
