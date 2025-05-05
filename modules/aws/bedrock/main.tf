@@ -98,7 +98,7 @@ resource "aws_iam_role" "bedrock_kb_role" {
 resource "aws_iam_role_policy" "bedrock_kb_policy" {
   count  = var.create_iam_role ? 1 : 0
   name   = "${var.name}-policy"
-  role  = var.kb_role_name != "" ? var.kb_role_name : "default-role-name" 
+  role   = aws_iam_role.bedrock_kb_role[0].name
   policy = templatefile(var.policy_file_path, var.policy_vars)
 }
 
