@@ -140,7 +140,7 @@ resource "time_sleep" "wait_for_new_role_policy" {
 # }
 
 resource "opensearch_index" "kb_vector_index" {
-  provider                       = opensearch.cc
+  # provider                       = opensearch.cc
   name                           = var.vector_index_name
   number_of_shards               = "2"
   number_of_replicas             = "0"
