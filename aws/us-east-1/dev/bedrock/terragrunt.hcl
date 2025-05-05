@@ -4,42 +4,15 @@ include "root" {
 }
 
 terraform {
-  source = "../../../../../tf-modules/bedrock"
-}
-
-dependency "lambda_function" {
-  config_path = "../lambda/athena_query_lambda"
-
-  mock_outputs = {
-    lambda_function_arn = "arn:aws:lambda:us-east-1:123456789012:function:mock-athena-query"
-  }
-}
-
-dependency "kb_bucket" {
-  config_path = "../s3/kb_bucket"
-
-  mock_outputs = {
-    bucket = "mock-kb-bucket"
-    arn    = "arn:aws:s3:::mock-kb-bucket"
-  }
-}
-
-dependency "iam_roles" {
-  config_path = "./iam_role"
-
-  mock_outputs = {
-    kb_role_arn    = "arn:aws:iam::123456789012:role/mock-kb-role"
-    kb_role_name   = "mock-kb-role"
-    agent_role_arn = "arn:aws:iam::123456789012:role/mock-agent-role"
-  }
+  source = "${get_repo_root()}/tf-modules/bedrock"
 }
 
 locals {
-  global       = include.root.locals.global
-  app_name     = local.global.app_name
-  account_id   = local.global.account_id
-  external_id  = local.global.external_id
-  trust_role   = local.global.trust_role
+  global         = include.root.locals.global
+  app_name       = local.global.app_name
+  account_id     = local.global.account_id
+  external_id    = local.global.external_id
+  trust_role     = local.global.trust_role
   collection_name = "${local.app_name}-bedrock-collection"
   vector_index_name = "${local.app_name}-kb-index"
 }
@@ -50,13 +23,13 @@ inputs = {
   kb_description      = "Knowledge base for P2P vendor financial inquiries"
   kb_configuration_type = "VECTOR"
   
-  # IAM roles
-  kb_role_arn         = dependency.iam_roles.outputs.kb_role_arn
-  kb_role_name        = dependency.iam_roles.outputs.kb_role_name
+  # IAM roles - Using hardcoded values for now until IAM role is created
+  kb_role_arn         = "arn:aws:iam::${local.account_id}:role/${local.app_name}-bedrock-kb-role"
+  kb_role_name        = "${local.app_name}-bedrock-kb-role"
   
-  # S3 bucket for data source
-  s3_bucket_arn       = dependency.kb_bucket.outputs.arn
-  s3_inclusion_prefixes = []  # Add prefixes if needed
+  # S3 bucket for data source - Using the app_name to construct the bucket ARN
+  s3_bucket_arn       = "arn:aws:s3:::${local.app_name}-kb-input"
+  s3_inclusion_prefixes = []
   
   # OpenSearch Serverless configuration
   oass_collection_name = local.collection_name
