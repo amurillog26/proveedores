@@ -37,7 +37,7 @@ inputs = {
   description = "Lambda function for processing Athena queries"
   
   # Usar el archivo ZIP en la raíz del directorio
-  filename = "${get_terragrunt_dir()}/funtions.zip"
+  filename = "${get_terragrunt_dir()}/function.zip"
   
   # Desactivar la generación del código fuente
   source_code_path = null
