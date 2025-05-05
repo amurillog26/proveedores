@@ -1,3 +1,5 @@
+# Refer to: https://blog.avangards.io/how-to-manage-an-amazon-bedrock-knowledge-base-using-terraform
+
 # Create the OpenSearch Serverless collection
 resource "aws_opensearchserverless_collection" "this" {
   name        = var.oass_collection_name
@@ -178,7 +180,8 @@ resource "opensearch_index" "kb_vector_index" {
   ]
 }
 
-resource "aws_bedrock_knowledge_base" "kb_bedrock" {
+# Usar el nombre correcto del recurso para AWS Bedrock Knowledge Base
+resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
   name        = var.name
   description = var.kb_description
   role_arn    = var.create_iam_role ? aws_iam_role.bedrock_kb_role[0].arn : var.kb_role_arn
@@ -210,8 +213,9 @@ resource "aws_bedrock_knowledge_base" "kb_bedrock" {
   ]
 }
 
-resource "aws_bedrock_knowledge_base_data_source" "kb_s3_datasource" {
-  knowledge_base_id = aws_bedrock_knowledge_base.kb_bedrock.id
+# Usar el nombre correcto del recurso para AWS Bedrock Data Source
+resource "aws_bedrockagent_data_source" "kb_s3_datasource" {
+  knowledge_base_id = aws_bedrockagent_knowledge_base.kb_bedrock.id
   name              = "${var.name}-datasource"
 
   vector_ingestion_configuration {
