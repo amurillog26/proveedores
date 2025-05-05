@@ -4,7 +4,7 @@ include "root" {
 }
 
 terraform {
-  source = "${get_terragrunt_dir()}/../../../../tf-modules/bedrock/"
+  source = "${get_terragrunt_dir()}/../../../../../tf-modules/bedrock/"
 }
 
 
