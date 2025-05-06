@@ -21,6 +21,7 @@ locals {
   account_id        = local.global.account_id
   external_id       = local.global.external_id
   trust_role        = local.global.trust_role
+  region            = local.global.aws_region  # Use region from globals
   collection_name   = "${local.app_name}-kb-coll"
   vector_index_name = "${local.app_name}-kb-idx"
   
@@ -40,16 +41,26 @@ inputs = {
   assume_role_file_path  = local.assume_role_file_path
   policy_file_path       = local.policy_file_path
   
-  # Variables para la plantilla de política
+  # Variables para la plantilla de política - ajustadas según el nuevo patrón
   policy_vars = {
     vars = {
-      region                = "us-east-1"
-      account_id            = local.account_id
-      s3_bucket_arn         = dependency.kb_bucket.outputs.arn
-      opensearch_collection = "arn:aws:aoss:us-east-1:*:collection/${local.collection_name}"
-      opensearch_index      = "arn:aws:aoss:us-east-1:*:collection/${local.collection_name}/*"
-      kms_alias             = "\"alias/aws/es\"" 
-      project               = local.global.project
+      region              = local.region
+      account_id          = local.account_id
+      s3_arn              = dependency.kb_bucket.outputs.arn  # Cambiado para coincidir con el template
+      project             = local.global.project
+      kms_alias           = jsonencode([                     # Formateo más consistente con el otro archivo
+        "alias/aws/es"
+      ])
+      aoss_col            = local.collection_name           # Para consistencia con el otro archivo
+    }
+  }
+  
+  # Template vars para assume role - similar al nuevo patrón
+  template_vars = {
+    vars = {
+      aws_service = "bedrock.amazonaws.com"
+      region      = local.region
+      account_id  = local.account_id
     }
   }
   
