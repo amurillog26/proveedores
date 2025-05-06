@@ -103,9 +103,9 @@ resource "aws_iam_role_policy" "bedrock_kb_policy" {
 }
 
 resource "aws_iam_role_policy" "bedrock_kb_hrchat_oss" {
-  name = "${var.name}-role"
-  # role = aws_iam_role.bedrock_kb_forex_kb.name
-  role = var.kb_role_arn
+  count  = var.create_iam_role ? 1 : 0
+  name   = "${var.name}-opensearch-api-access"
+  role   = aws_iam_role.bedrock_kb_role[0].name  # Usar el nombre del rol, no el ARN
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
