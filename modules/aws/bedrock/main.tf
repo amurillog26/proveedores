@@ -103,9 +103,9 @@ resource "aws_iam_role_policy" "bedrock_kb_policy" {
 }
 
 resource "aws_iam_role_policy" "bedrock_kb_hrchat_oss" {
-  name = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
+  name = "${var.name}-role"
   # role = aws_iam_role.bedrock_kb_forex_kb.name
-  role = "${var.name}-kd-role"
+  role = var.kb_role_arn
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
