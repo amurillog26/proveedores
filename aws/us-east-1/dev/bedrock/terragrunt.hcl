@@ -16,7 +16,6 @@ dependency "kb_bucket" {
 }
 dependency "iam_role" {
   config_path = "../iam_role"
-  skip_outputs = true  # Añade esta línea
 
   mock_outputs = {
     role_arn   = "arn:aws:iam::123456789012:role/mock-bedrock-role"
