@@ -46,47 +46,6 @@ resource "aws_opensearchserverless_security_policy" "encryption_policy" {
   })
 }
 
-resource "aws_opensearchserverless_access_policy" "data_access_policy" {
-  name        = var.oass_data_access_policy_name
-  description = var.oass_data_access_policy_desc
-  type        = "data"
-
-  policy = jsonencode([
-    {
-      Rules = [
-        {
-          ResourceType = "index",
-          Resource = [
-            "index/${var.oass_collection_name}/*"
-          ],
-          Permission = [
-            "aoss:CreateIndex",
-            "aoss:DeleteIndex",
-            "aoss:DescribeIndex",
-            "aoss:ReadDocument",
-            "aoss:UpdateIndex",
-            "aoss:WriteDocument"
-          ]
-        },
-        {
-          ResourceType = "collection",
-          Resource     = ["collection/${var.oass_collection_name}"]
-          Permission = [
-            "aoss:DescribeCollectionItems",
-            "aoss:CreateCollectionItems",
-            "aoss:UpdateCollectionItems"
-          ]
-        }
-      ],
-      Principal = [
-        var.kb_role_arn,
-        join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role]),
-        join("", ["arn:aws:sts::", var.t_account_id, ":assumed-role/", var.oass_owner_policy_access, "/*"])
-      ]
-    }
-  ])
-}
-
 # Create or use the IAM role
 resource "aws_iam_role" "bedrock_kb_role" {
   count              = var.create_iam_role ? 1 : 0
@@ -102,37 +61,35 @@ resource "aws_iam_role_policy" "bedrock_kb_policy" {
   policy = templatefile(var.policy_file_path, var.policy_vars)
 }
 
-resource "aws_iam_role_policy" "bedrock_kb_hrchat_oss" {
+# Agregar política para acceso API a OpenSearch
+resource "aws_iam_role_policy" "opensearch_api_access" {
   count  = var.create_iam_role ? 1 : 0
   name   = "${var.name}-opensearch-api-access"
-  role   = aws_iam_role.bedrock_kb_role[0].name  # Usar el nombre del rol, no el ARN
+  role   = aws_iam_role.bedrock_kb_role[0].name
+  
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Action   = "aoss:APIAccessAll"
-        Effect   = "Allow"
-        Resource = aws_opensearchserverless_collection.this.arn
+        Effect = "Allow",
+        Action = ["aoss:APIAccessAll"],
+        Resource = [aws_opensearchserverless_collection.this.arn]
       }
     ]
   })
 }
 
-
 resource "time_sleep" "wait_for_new_role_policy" {
   count           = var.create_iam_role ? 1 : 0
   create_duration = "20s"
-  depends_on      = [aws_iam_role_policy.bedrock_kb_policy]
+  depends_on      = [
+    aws_iam_role_policy.bedrock_kb_policy,
+    aws_iam_role_policy.opensearch_api_access
+  ]
 }
 
-# resource "time_sleep" "wait_for_existing_role_policy" {
-#   count           = var.create_iam_role ? 0 : 1
-#   create_duration = "20s"
-#   depends_on      = [aws_iam_role_policy.bedrock_kb_opensearch_access]
-# }
-
 # Note that the healthcheck argument is set to false because the
-#client health check does not really work with OpenSearch Serverless.
+# client health check does not really work with OpenSearch Serverless.
 provider "opensearch" {
   alias                       = "cc"
   url                         = aws_opensearchserverless_collection.this.collection_endpoint
@@ -178,9 +135,7 @@ resource "opensearch_index" "kb_vector_index" {
   force_destroy                  = true
   depends_on = [
     aws_opensearchserverless_collection.this,
-    # aws_opensearchserverless_access_policy.data_access_policy,
     time_sleep.wait_for_new_role_policy
-    # time_sleep.wait_for_existing_role_policy
   ]
 }
 
@@ -213,7 +168,6 @@ resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
   tags = module.this.tags
   depends_on = [
     time_sleep.wait_for_new_role_policy,
-    # time_sleep.wait_for_existing_role_policy,
     opensearch_index.kb_vector_index
   ]
 }
