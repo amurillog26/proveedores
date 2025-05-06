@@ -23,7 +23,6 @@ dependency "iam_role" {
   }
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
-}
 
 locals {
   global            = include.root.locals.global
