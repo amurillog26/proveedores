@@ -16,6 +16,13 @@ dependency "kb_bucket" {
 }
 dependency "iam_role" {
   config_path = "../iam_role"
+
+  mock_outputs = {
+    role_arn   = "arn:aws:iam::123456789012:role/mock-bedrock-role"
+    role_name  = "mock-bedrock-role"
+  }
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
+}
 }
 
 locals {
@@ -41,6 +48,8 @@ inputs = {
   
   # Configuración del rol IAM - Crear nuevo rol usando templates
   create_iam_role        = true
+  kb_role_arn            = dependency.iam_role.outputs.role_arn
+  kb_role_name           = dependency.iam_role.outputs.role_name
   assume_role_file_path  = local.assume_role_file_path
   policy_file_path       = local.policy_file_path
   
