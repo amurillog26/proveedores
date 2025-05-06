@@ -102,21 +102,22 @@ resource "aws_iam_role_policy" "bedrock_kb_policy" {
   policy = templatefile(var.policy_file_path, var.policy_vars)
 }
 
-# resource "aws_iam_role_policy" "bedrock_kb_opensearch_access" {
-#   count  = var.create_iam_role ? 0 : 1
-#   name   = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
-#   role   = var.kb_role_name
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Action   = "aoss:APIAccessAll"
-#         Effect   = "Allow"
-#         Resource = aws_opensearchserverless_collection.this.arn
-#       }
-#     ]
-#   })
-# }
+resource "aws_iam_role_policy" "bedrock_kb_hrchat_oss" {
+  name = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
+  # role = aws_iam_role.bedrock_kb_forex_kb.name
+  role = "${var.name}-kd-role"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = "aoss:APIAccessAll"
+        Effect   = "Allow"
+        Resource = aws_opensearchserverless_collection.this.arn
+      }
+    ]
+  })
+}
+
 
 resource "time_sleep" "wait_for_new_role_policy" {
   count           = var.create_iam_role ? 1 : 0
