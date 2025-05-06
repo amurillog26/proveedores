@@ -43,16 +43,11 @@ inputs = {
   
   # Variables para la plantilla de política - ajustadas según el nuevo patrón
   policy_vars = {
-    vars = {
-      region              = local.region
-      account_id          = local.account_id
-      s3_arn              = dependency.kb_bucket.outputs.arn  # Cambiado para coincidir con el template
-      project             = local.global.project
-      kms_alias           = jsonencode([                     # Formateo más consistente con el otro archivo
-        "alias/aws/es"
-      ])
-      aoss_col            = local.collection_name           # Para consistencia con el otro archivo
-    }
+    region              = local.region
+    account_id          = local.account_id
+    s3_arn              = dependency.kb_bucket.outputs.arn
+    project             = local.global.project
+    kms_alias           = jsonencode(["alias/aws/es"])
   }
   
   # Template vars para assume role - similar al nuevo patrón
