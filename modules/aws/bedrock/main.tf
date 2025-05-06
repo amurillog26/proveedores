@@ -56,7 +56,9 @@ resource "aws_opensearchserverless_access_policy" "data_access_policy" {
       Rules = [
         {
           ResourceType = "index",
-          Resource = ["index/${var.oass_collection_name}/*"],
+          Resource = [
+            "index/${var.oass_collection_name}/*"
+          ],
           Permission = [
             "aoss:CreateIndex",
             "aoss:DeleteIndex",
@@ -68,17 +70,18 @@ resource "aws_opensearchserverless_access_policy" "data_access_policy" {
         },
         {
           ResourceType = "collection",
-          Resource = ["collection/${var.oass_collection_name}"],
+          Resource     = ["collection/${var.oass_collection_name}"]
           Permission = [
             "aoss:DescribeCollectionItems",
             "aoss:CreateCollectionItems",
-            "aoss:UpdateCollectionItems",
-            "aoss:APIAccessAll"  # Añadido este permiso
+            "aoss:UpdateCollectionItems"
           ]
         }
       ],
       Principal = [
-        "arn:aws:iam::${var.t_account_id}:role/${var.t_tf_role}"
+        var.kb_role_arn,
+        join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role]),
+        join("", ["arn:aws:sts::", var.t_account_id, ":assumed-role/", var.oass_owner_policy_access, "/*"])
       ]
     }
   ])
