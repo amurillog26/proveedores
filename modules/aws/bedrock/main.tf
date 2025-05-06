@@ -53,7 +53,7 @@ resource "aws_iam_role" "bedrock_kb_role" {
   assume_role_policy = file(var.assume_role_file_path)
 }
 
-# If creating a new role, attach the policy from template
+# Modificar la política de plantilla en kb-policy.tpl para incluir permisos de API Access
 resource "aws_iam_role_policy" "bedrock_kb_policy" {
   count  = var.create_iam_role ? 1 : 0
   name   = "${var.name}-policy"
@@ -61,35 +61,12 @@ resource "aws_iam_role_policy" "bedrock_kb_policy" {
   policy = templatefile(var.policy_file_path, var.policy_vars)
 }
 
-# Agregar política para acceso API a OpenSearch
-resource "aws_iam_role_policy" "opensearch_api_access" {
-  count  = var.create_iam_role ? 1 : 0
-  name   = "${var.name}-opensearch-api-access"
-  role   = aws_iam_role.bedrock_kb_role[0].name
-  
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = ["aoss:APIAccessAll"],
-        Resource = [aws_opensearchserverless_collection.this.arn]
-      }
-    ]
-  })
-}
-
 resource "time_sleep" "wait_for_new_role_policy" {
   count           = var.create_iam_role ? 1 : 0
   create_duration = "20s"
-  depends_on      = [
-    aws_iam_role_policy.bedrock_kb_policy,
-    aws_iam_role_policy.opensearch_api_access
-  ]
+  depends_on      = [aws_iam_role_policy.bedrock_kb_policy]
 }
 
-# Note that the healthcheck argument is set to false because the
-# client health check does not really work with OpenSearch Serverless.
 provider "opensearch" {
   alias                       = "cc"
   url                         = aws_opensearchserverless_collection.this.collection_endpoint
@@ -139,7 +116,6 @@ resource "opensearch_index" "kb_vector_index" {
   ]
 }
 
-# Usar el nombre correcto del recurso para AWS Bedrock Knowledge Base
 resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
   name        = var.name
   description = var.kb_description
@@ -172,7 +148,6 @@ resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
   ]
 }
 
-# Usar el nombre correcto del recurso para AWS Bedrock Data Source
 resource "aws_bedrockagent_data_source" "kb_s3_datasource" {
   knowledge_base_id = aws_bedrockagent_knowledge_base.kb_bedrock.id
   name              = "${var.name}-datasource"
