@@ -14,6 +14,9 @@ dependency "kb_bucket" {
     arn    = "arn:aws:s3:::providerp2p-kb-input"
   }
 }
+dependency "iam_role" {
+  config_path = "../iam_role"
+}
 
 locals {
   global            = include.root.locals.global
@@ -26,8 +29,8 @@ locals {
   vector_index_name = "${local.app_name}-kb-idx"
   
   # Rutas a los archivos de políticas
-  assume_role_file_path = "${get_terragrunt_dir()}/iam_role/policies/assume-role.tpl"
-  policy_file_path      = "${get_terragrunt_dir()}/iam_role/policies/kb-policy.tpl"
+  assume_role_file_path = "../iam_role/policies/assume-role.tpl"
+  policy_file_path      = "../iam_role/policies/kb-policy.tpl"
 }
 
 inputs = {
