@@ -43,9 +43,13 @@ inputs = {
   # Variables para la plantilla de política
   policy_vars = {
     vars = {
+      region                = "us-east-1"
+      account_id            = local.account_id
       s3_bucket_arn         = dependency.kb_bucket.outputs.arn
       opensearch_collection = "arn:aws:aoss:us-east-1:*:collection/${local.collection_name}"
       opensearch_index      = "arn:aws:aoss:us-east-1:*:collection/${local.collection_name}/*"
+      kms_alias             = "\"alias/aws/es\"" 
+      project               = local.global.project
     }
   }
   
