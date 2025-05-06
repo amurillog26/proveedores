@@ -1,4 +1,4 @@
-include "parent" {
+include "root" {
   path   = find_in_parent_folders()
   expose = true
 }
@@ -22,8 +22,8 @@ locals {
   assume_role_file_path = "${get_terragrunt_dir()}/policies/assume-role.tpl"
   template_file_path    = "${get_terragrunt_dir()}/policies/allow-service.tpl"
 
-  region     = include.parent.locals.global.aws_region
-  account_id = include.parent.locals.account_id
+  region     = include.root.locals.global.aws_region
+  account_id = include.root.locals.account_id
 }
 
 inputs = {
