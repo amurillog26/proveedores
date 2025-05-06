@@ -1,5 +1,5 @@
 include "root" {
-  path   = find_in_parent_folders()
+  path   = find_in_parent_folders()  # Esto irá directamente al archivo raíz
   expose = true
 }
 
@@ -17,10 +17,9 @@ terraform {
   source = "git::git@gitlab.com:holcim-adc/americas-core/tools/tf-modules.git///?ref=aws/iamrole_6.1.0"
 }
 
-
 locals {
   assume_role_file_path = "${get_terragrunt_dir()}/policies/assume-role.tpl"
-  template_file_path    = "${get_terragrunt_dir()}/policies/allow-service.tpl"
+  policy_file_path      = "${get_terragrunt_dir()}/policies/kb-policy.tpl"  # Cambiado a kb-policy.tpl
 
   region     = include.root.locals.global.aws_region
   account_id = include.root.locals.account_id
@@ -31,8 +30,6 @@ inputs = {
   name             = "AmazonBedrockExecutionRoleForKnowledgeBase_argen7"
   use_custom_name  = true
   role_description = "IAM Role for execution KB Bedrock"
-
-
 
   assume_role_file_path = local.assume_role_file_path
   template_vars = {
@@ -48,14 +45,14 @@ inputs = {
       name               = "AmazonBedrockFoundationModelPolicyForKnowledgeBase_argen7"
       use_custom_name    = true
       description        = "Permissions for Bedrock for model logging."
-      template_file_path = local.template_file_path
+      template_file_path = local.policy_file_path
       template_vars = {
         vars = {
           region     = local.region
           account_id = local.account_id
           s3_arn     = dependency.s3.outputs.arn
           aoss_col   = "bedrock-knowledge-base-*"
-          project    = include.parent.locals.global.project
+          project    = include.root.locals.global.project  # Cambiado de parent a root
           kms_alias = jsonencode([
             "alias/*-encrypt"
           ])
