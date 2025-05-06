@@ -4,7 +4,7 @@ include "parent" {
 }
 
 dependency "s3" {
-  config_path = "../s3/kb_bucket"
+  config_path = "../../s3/kb_bucket"
 
   mock_outputs_allowed_terraform_commands = ["init", "fmt", "validate", "plan", "show", "destroy"]
   mock_outputs = {
