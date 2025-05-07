@@ -47,8 +47,7 @@ inputs = {
   
   # Configuración del rol IAM - Crear nuevo rol usando templates
   create_iam_role        = true
-  kb_role_arn            = dependency.iam_role.outputs.role_arn
-  kb_role_name           = dependency.iam_role.outputs.role_name
+  kb_role_name = "AmazonBedrockExecutionRoleForKnowledgeBase_argen7"
   assume_role_file_path  = local.assume_role_file_path
   policy_file_path       = local.policy_file_path
   
