@@ -36,8 +36,8 @@ locals {
   vector_index_name = "${local.app_name}-kb-idx"
   
   # Rutas a los archivos de políticas
-  assume_role_file_path = "../iam_role/policies/assume-role.tpl"
-  policy_file_path      = "../iam_role/policies/kb-policy.tpl"
+  # assume_role_file_path = "../iam_role/policies/assume-role.tpl"
+  # policy_file_path      = "../iam_role/policies/kb-policy.tpl"
 }
 
 inputs = {
@@ -47,10 +47,10 @@ inputs = {
   kb_configuration_type  = "VECTOR"
   
   # Configuración del rol IAM - Crear nuevo rol usando templates
-  create_iam_role        = true
+  create_iam_role        = false
   kb_role_name = "AmazonBedrockExecutionRoleForKnowledgeBase_argen7"
-  assume_role_file_path  = local.assume_role_file_path
-  policy_file_path       = local.policy_file_path
+  # assume_role_file_path  = local.assume_role_file_path
+  # policy_file_path       = local.policy_file_path
   
   # Variables para la plantilla de política - ajustadas según el nuevo patrón
   policy_vars = {
