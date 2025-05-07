@@ -121,7 +121,7 @@ resource "opensearch_index" "kb_vector_index" {
 resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
   name        = var.name
   description = var.kb_description
-  role_arn = var.create_iam_role ? aws_iam_role.bedrock_kb_role[0].arn : data.aws_iam_role.bedrock_role[0].arn
+  role_arn    = var.create_iam_role ? aws_iam_role.bedrock_kb_role[0].arn : data.aws_iam_role.bedrock_role[0].arn
 
   knowledge_base_configuration {
     type = var.kb_configuration_type
