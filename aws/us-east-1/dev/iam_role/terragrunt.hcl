@@ -61,8 +61,3 @@ inputs = {
     }
   }
 }
-
-outputs = {
-  role_arn  = aws_iam_role.this.arn
-  role_name = aws_iam_role.this.name
-}
