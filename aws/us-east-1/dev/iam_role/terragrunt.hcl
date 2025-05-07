@@ -27,7 +27,7 @@ locals {
 
 inputs = {
   ## Role Attributes ##
-  name             = "AmazonBedrockExecutionRoleForKnowledgeBase_argen7"
+  name             = "AmazonBedrockExecutionRoleForKnowledgeBase_p2p"
   use_custom_name  = true
   role_description = "IAM Role for execution KB Bedrock"
 
