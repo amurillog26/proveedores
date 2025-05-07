@@ -42,7 +42,7 @@ inputs = {
 
   iam_policies = {
     default = {
-      name               = "AmazonBedrockFoundationModelPolicyForKnowledgeBase_argen7"
+      name               = "AmazonBedrockFoundationModelPolicyForKnowledgeBase_p2p"
       use_custom_name    = true
       description        = "Permissions for Bedrock for model logging."
       template_file_path = local.policy_file_path
