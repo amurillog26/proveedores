@@ -1,10 +1,14 @@
-include "root" {
-  path   = find_in_parent_folders()  # Esto irá directamente al archivo raíz
+include "parent" {
+  path   = find_in_parent_folders()
   expose = true
 }
 
+terraform {
+  source = "git::https://gitlab.com/holcim-adc/americas-core/tools/tf-modules.git//?ref=aws/iamrole_6.0.1"
+}
+
 dependency "s3" {
-  config_path = "../s3/kb_bucket"
+  config_path = "../s3/input_bucket"
 
   mock_outputs_allowed_terraform_commands = ["init", "fmt", "validate", "plan", "show", "destroy"]
   mock_outputs = {
@@ -13,49 +17,35 @@ dependency "s3" {
   }
 }
 
-terraform {
-  source = "git::git@gitlab.com:holcim-adc/americas-core/tools/tf-modules.git///?ref=aws/iamrole_6.1.0"
-}
-
-locals {
-  assume_role_file_path = "${get_terragrunt_dir()}/policies/assume-role.tpl"
-  policy_file_path      = "${get_terragrunt_dir()}/policies/kb-policy.tpl"  # Cambiado a kb-policy.tpl
-
-  region     = include.root.locals.global.aws_region
-  account_id = include.root.locals.account_id
-}
-
 inputs = {
-  ## Role Attributes ##
-  name             = "AmazonBedrockExecutionRoleForKnowledgeBase_p2p"
-  use_custom_name  = true
-  role_description = "IAM Role for execution KB Bedrock"
-
-  assume_role_file_path = local.assume_role_file_path
+  use_custom_name       = true
+  name                  = "${include.parent.inputs.namespace}-${include.parent.inputs.project}-${include.parent.inputs.environment}-bedrock"
+  role_description      = "IAM Role for ${include.parent.inputs.project} bedrock."
+  assume_role_file_path = "${get_terragrunt_dir()}/assume-role.json"
   template_vars = {
     vars = {
-      aws_service = "bedrock.amazonaws.com"
-      region      = local.region
-      account_id  = local.account_id
+      aws_service = "bedrock"
+      aws_region  = include.parent.locals.global.aws_region
+      account_id  = include.parent.locals.account_id
     }
   }
 
+  # policies_arn = [
+  #   "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+  #   "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
+  # ]
+
   iam_policies = {
-    default = {
-      name               = "AmazonBedrockFoundationModelPolicyForKnowledgeBase_p2p"
+    allow-bedrock-policy = {
+      name               = "${include.parent.inputs.namespace}-${include.parent.inputs.project}-${include.parent.inputs.environment}-bedrock-policy"
+      description        = "Allow bedrock interactions."
+      template_file_path = "${get_terragrunt_dir()}/allow-bedrock.json"
       use_custom_name    = true
-      description        = "Permissions for Bedrock for model logging."
-      template_file_path = local.policy_file_path
       template_vars = {
         vars = {
-          region     = local.region
-          account_id = local.account_id
-          s3_arn     = dependency.s3.outputs.arn
-          aoss_col   = "bedrock-knowledge-base-*"
-          project    = include.root.locals.global.project  # Cambiado de parent a root
-          kms_alias = jsonencode([
-            "alias/*-encrypt"
-          ])
+          aws_region    = include.parent.locals.global.aws_region
+          account_id    = include.parent.locals.account_id
+          s3_bucket_arn = dependency.s3.outputs.arn
         }
       }
     }

@@ -1,5 +1,7 @@
-# Refer to: https://blog.avangards.io/how-to-manage-an-amazon-bedrock-knowledge-base-using-terraform
-
+data "aws_iam_role" "bedrock_role" {
+  count = var.kb_role_name != "" && var.kb_role_arn == "" ? 1 : 0
+  name  = var.kb_role_name
+}
 # Create the OpenSearch Serverless collection
 resource "aws_opensearchserverless_collection" "this" {
   name        = var.oass_collection_name
@@ -46,94 +48,27 @@ resource "aws_opensearchserverless_security_policy" "encryption_policy" {
   })
 }
 
-resource "aws_opensearchserverless_access_policy" "data_access_policy" {
-  name        = var.oass_data_access_policy_name
-  description = var.oass_data_access_policy_desc
-  type        = "data"
-
-  policy = jsonencode([
-    {
-      Rules = [
-        {
-          ResourceType = "index",
-          Resource = [
-            "index/${var.oass_collection_name}/*"
-          ],
-          Permission = [
-            "aoss:CreateIndex",
-            "aoss:DeleteIndex",
-            "aoss:DescribeIndex",
-            "aoss:ReadDocument",
-            "aoss:UpdateIndex",
-            "aoss:WriteDocument"
-          ]
-        },
-        {
-          ResourceType = "collection",
-          Resource     = ["collection/${var.oass_collection_name}"]
-          Permission = [
-            "aoss:DescribeCollectionItems",
-            "aoss:CreateCollectionItems",
-            "aoss:UpdateCollectionItems"
-          ]
-        }
-      ],
-      Principal = [
-        var.kb_role_arn,
-        join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role]),
-        join("", ["arn:aws:sts::", var.t_account_id, ":assumed-role/", var.oass_owner_policy_access, "/*"])
-      ]
-    }
-  ])
+# Create or use the IAM role
+resource "aws_iam_role" "bedrock_kb_role" {
+  count              = var.create_iam_role ? 1 : 0
+  name               = "${var.name}-role"
+  assume_role_policy = file(var.assume_role_file_path)
 }
 
-# Get the model arn given model_id
-# data "aws_bedrock_foundation_model" "kb" {
-#   model_id = var.kb_model_id
-# }
-
-# resource "aws_iam_role_policy" "bedrock_kb_forex_kb_model" {
-#   name = "AmazonBedrockFoundationModelPolicyForKnowledgeBase_chatbot"
-#   role = var.kb_role_name
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Action   = "bedrock:InvokeModel"
-#         Effect   = "Allow"
-#         Resource = data.aws_bedrock_foundation_model.kb.model_arn
-#       }
-#     ]
-#   })
-# }
-
-# We need specific permissions in the collection_id;
-# collection_name seems to not been working
-# TODO: rework with tf-modules
-resource "aws_iam_role_policy" "bedrock_kb_hrchat_oss" {
-  name = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
-  # role = aws_iam_role.bedrock_kb_forex_kb.name
-  role = var.kb_role_name
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action   = "aoss:APIAccessAll"
-        Effect   = "Allow"
-        Resource = aws_opensearchserverless_collection.this.arn
-      }
-    ]
-  })
+# Modificar la política de plantilla en kb-policy.tpl para incluir permisos de API Access
+resource "aws_iam_role_policy" "bedrock_kb_policy" {
+  count  = var.create_iam_role ? 1 : 0
+  name   = "${var.name}-policy"
+  role   = aws_iam_role.bedrock_kb_role[0].name
+  policy = templatefile(var.policy_file_path, var.policy_vars)
 }
 
-# Wait for the role policy to be attache/propagate to the role before creating the collection
-resource "time_sleep" "aws_iam_role_policy_bedrock_kb_hrchat_oss" {
+resource "time_sleep" "wait_for_new_role_policy" {
+  count           = var.create_iam_role ? 1 : 0
   create_duration = "20s"
-  depends_on      = [aws_iam_role_policy.bedrock_kb_hrchat_oss]
+  depends_on      = [aws_iam_role_policy.bedrock_kb_policy]
 }
 
-# Note that the healthcheck argument is set to false because the
-#client health check does not really work with OpenSearch Serverless.
 provider "opensearch" {
   alias                       = "cc"
   url                         = aws_opensearchserverless_collection.this.collection_endpoint
@@ -142,7 +77,7 @@ provider "opensearch" {
   healthcheck                 = false
 }
 
-resource "opensearch_index" "hrchat_kb" {
+resource "opensearch_index" "kb_vector_index" {
   provider                       = opensearch.cc
   name                           = var.vector_index_name
   number_of_shards               = "2"
@@ -152,7 +87,7 @@ resource "opensearch_index" "hrchat_kb" {
   mappings                       = <<-EOF
     {
       "properties": {
-        "${var.oass_collection_name}-vector": {
+        "${var.vector_field}": {
           "type": "knn_vector",
           "dimension": 1024,
           "method": {
@@ -165,11 +100,11 @@ resource "opensearch_index" "hrchat_kb" {
             "space_type": "l2"
           }
         },
-        "AMAZON_BEDROCK_METADATA": {
+        "${var.metadata_field}": {
           "type": "text",
           "index": "false"
         },
-        "AMAZON_BEDROCK_TEXT_CHUNK": {
+        "${var.text_field}": {
           "type": "text",
           "index": "true"
         }
@@ -179,14 +114,14 @@ resource "opensearch_index" "hrchat_kb" {
   force_destroy                  = true
   depends_on = [
     aws_opensearchserverless_collection.this,
-    aws_opensearchserverless_access_policy.data_access_policy
+    time_sleep.wait_for_new_role_policy
   ]
 }
 
 resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
   name        = var.name
   description = var.kb_description
-  role_arn    = var.kb_role_arn
+  role_arn    = var.create_iam_role ? aws_iam_role.bedrock_kb_role[0].arn : data.aws_iam_role.bedrock_role[0].arn
 
   knowledge_base_configuration {
     type = var.kb_configuration_type
@@ -210,19 +145,29 @@ resource "aws_bedrockagent_knowledge_base" "kb_bedrock" {
 
   tags = module.this.tags
   depends_on = [
-    aws_iam_role_policy.bedrock_kb_hrchat_oss,
-    time_sleep.aws_iam_role_policy_bedrock_kb_hrchat_oss,
-    opensearch_index.hrchat_kb
+    time_sleep.wait_for_new_role_policy,
+    opensearch_index.kb_vector_index
   ]
 }
 
-resource "aws_bedrockagent_data_source" "forex_kb" {
+resource "aws_bedrockagent_data_source" "kb_s3_datasource" {
   knowledge_base_id = aws_bedrockagent_knowledge_base.kb_bedrock.id
   name              = "${var.name}-datasource"
+
+  vector_ingestion_configuration {
+    chunking_configuration {
+      chunking_strategy = "FIXED_SIZE"
+      fixed_size_chunking_configuration {
+        max_tokens         = 800
+        overlap_percentage = 20
+      }
+    }
+  }
   data_source_configuration {
     type = "S3"
     s3_configuration {
-      bucket_arn = var.s3_bucket_arn
+      bucket_arn         = var.s3_bucket_arn
+      inclusion_prefixes = var.s3_inclusion_prefixes
     }
   }
 }

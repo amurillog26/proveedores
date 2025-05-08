@@ -123,11 +123,6 @@ variable "project" {
     Project tag value use to identify where the resource belongs to.
     - e.g. "ng-infra-smtp", "ng-infra-tool", "ng-infra-na"
   EOT
-
-  # validation {
-  #   condition     = can(regex("^[a-zA-Z\\-\\_0-9]+[\\sa-zA-Z\\-\\_0-9]+", var.project)) || can(regex("^[a-zA-Z\\-\\_0-9]+[\\sa-zA-Z\\-\\_0-9]+", var.context.project))
-  #   error_message = "The project value must be not empty or contains at least 3 characterers."
-  # }
 }
 
 variable "app_name" {
@@ -164,18 +159,6 @@ variable "app_type" {
     The application-type tag value use to indicate the application type resources:
     - Valid values are:  "apps", "autoscaling", "db", "infra", "web", "fs", "sec", "virtual-appliance", "xen-desktop".
   EOT
-}
-
-variable "name" {
-  type        = string
-  default     = null
-  description = <<-EOT
-    Name tag value usually describes the component or solution name,
-    - e.g. "chatbot" or "globaldir"
-
-    This is the only ID element not also included as a `tag`.
-    The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input.
-    EOT
 }
 
 variable "environment" {
@@ -318,5 +301,3 @@ variable "descriptor_formats" {
     Default is `{}` (`descriptors` output will be empty).
     EOT
 }
-
-#### End of copy of https://gitlab.com/holcim-adc/americas-core/tools/tf-modules/-/blob/null/tagging/variables.tf

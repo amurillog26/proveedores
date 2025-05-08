@@ -1,20 +1,58 @@
+variable "name" {
+  type        = string
+  description = "Name tag value usually describes the component or solution name"
+}
+
 variable "kb_description" {
   type        = string
   description = "The description of the Knowledge Base"
 }
+
 variable "kb_role_arn" {
   type        = string
   description = "The ARN of the role to assume when accessing the Knowledge Base"
+  default     = ""
 }
 
 variable "kb_role_name" {
   type        = string
   description = "The name of the role to assume when accessing the Knowledge Base"
+  default     = ""
+}
+
+variable "create_iam_role" {
+  type        = bool
+  description = "Whether to create a new IAM role (true) or use an existing one (false)"
+  default     = false
+}
+
+variable "assume_role_file_path" {
+  type        = string
+  description = "Path to the assume role policy template file"
+  default     = ""
+}
+
+variable "policy_file_path" {
+  type        = string
+  description = "Path to the policy template file"
+  default     = ""
+}
+
+variable "policy_vars" {
+  type        = any
+  description = "Variables to pass to the policy template file"
+  default     = {}
 }
 
 variable "s3_bucket_arn" {
   type        = string
   description = "The ARN of the S3 bucket to store the Knowledge Base"
+}
+
+variable "s3_inclusion_prefixes" {
+  type        = list(string)
+  description = "(Optional) List of S3 prefixes that define the object containing the data sources"
+  default     = []
 }
 
 variable "oass_collection_name" {
@@ -24,8 +62,8 @@ variable "oass_collection_name" {
 
 variable "oass_collection_desc" {
   type        = string
-  description = "Default collection created for Amazon Bedrock KB HR Chatbot"
-  default     = "Default collection created for Amazon Bedrock KB HR Chatbot"
+  description = "Description for the OpenSearch Serverless collection"
+  default     = "Collection created for Amazon Bedrock Knowledge Base"
 }
 
 variable "oass_collection_type" {
@@ -36,24 +74,12 @@ variable "oass_collection_type" {
 
 variable "oass_network_security_policy_name" {
   type        = string
-  description = "Name of the OpenSearch Serverless security policy"
-}
-
-variable "oass_network_security_policy_desc" {
-  type        = string
-  description = "Network access policy for OpenSearch endpoints and dashboards"
-  default     = "access policy for OpenSearch endpoints and dashboards"
+  description = "Name of the OpenSearch Serverless network security policy"
 }
 
 variable "oass_encryption_policy_name" {
   type        = string
-  description = "Name of the OpenSearch Serverless security policy"
-}
-
-variable "oass_encryption_policy_desc" {
-  type        = string
-  description = "Encryption policy using AWS owned key"
-  default     = "Encryption policy using AWS owned key"
+  description = "Name of the OpenSearch Serverless encryption policy"
 }
 
 variable "oass_data_access_policy_name" {
@@ -63,7 +89,7 @@ variable "oass_data_access_policy_name" {
 
 variable "oass_data_access_policy_desc" {
   type        = string
-  description = "Data access policy for the specified IAM role"
+  description = "Description for the OpenSearch Serverless data access policy"
   default     = "Data access policy for the specified IAM role"
 }
 
@@ -73,17 +99,19 @@ variable "vector_index_name" {
 }
 
 variable "vector_field" {
-  type = string
+  type        = string
+  description = "Name of the vector field in the index"
 }
 
 variable "metadata_field" {
-  type    = string
-  default = "AMAZON_BEDROCK_METADATA"
+  type        = string
+  description = "Name of the metadata field in the index"
+  default     = "AMAZON_BEDROCK_METADATA"
 }
 
 variable "text_field" {
   type        = string
-  description = "Amazon Bedrock text field storage name"
+  description = "Name of the text field in the index"
   default     = "AMAZON_BEDROCK_TEXT_CHUNK"
 }
 
@@ -93,9 +121,8 @@ variable "kb_embedding_model_arn" {
 }
 
 variable "kb_model_id" {
-  description = "The ID of the foundational model used by the knowledge base."
   type        = string
-  # default     = "amazon.titan-embed-text-v1"
+  description = "The ID of the foundational model used by the knowledge base"
 }
 
 variable "kb_configuration_type" {
@@ -106,21 +133,21 @@ variable "kb_configuration_type" {
 
 variable "t_tf_role" {
   type        = string
-  description = "Role ARN for Opensearch provider"
+  description = "Role name for OpenSearch provider"
 }
 
 variable "t_account_id" {
   type        = string
-  description = "AWS Account ID for Opensearch provider"
+  description = "AWS Account ID for OpenSearch provider"
 }
 
 variable "t_external_id" {
   type        = string
-  description = "External ID for Opensearch provider"
+  description = "External ID for OpenSearch provider"
 }
 
 variable "oass_owner_policy_access" {
   type        = string
-  description = "Additional role to assume for accessing oass collection indexes"
+  description = "Additional role to assume for accessing OpenSearch collection indexes"
   default     = "AWSReservedSSO_ADC-CloudEngineer_55d664f2862c3727"
 }

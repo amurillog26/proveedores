@@ -1,0 +1,44 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "BedrockInvokeModelStatement",
+            "Effect": "Allow",
+            "Action": [
+                "bedrock:InvokeModel"
+            ],
+            "Resource": [
+                "arn:aws:bedrock:${aws_region}::foundation-model/amazon.titan-embed-text-v2:0"
+            ]
+        },
+        {
+			"Sid": "OpenSearchServerlessAPIAccessAllStatement",
+			"Effect": "Allow",
+			"Action": [
+				"aoss:APIAccessAll"
+			],
+			"Resource": [
+				"arn:aws:aoss:${aws_region}:${account_id}:collection/*"
+			]
+		},
+        {
+            "Sid": "S3ListBucketStatement",
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "${s3_bucket_arn}/",
+                "${s3_bucket_arn}/*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceAccount": [
+                        "${account_id}"
+                    ]
+                }
+            }
+        }
+    ]
+}
