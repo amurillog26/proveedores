@@ -36,15 +36,15 @@ locals {
 
 inputs = {
   name           = local.name
-  kb_description = "Bedrock ECAN Chatbot"
+  kb_description = "Bedrock P2P"
   region         = local.region
   id_account     = local.account_id
 
   #AWS OpenSearch Serverless related variables
   oass_collection_name              = "${include.parent.locals.global.project}-${include.parent.locals.environment}"
-  oass_network_security_policy_name = "chatbot-ecan-pub-net-policy-${include.parent.locals.environment}"
-  oass_encryption_policy_name       = "chatbot-ecan-encrypt-policy-${include.parent.locals.environment}"
-  oass_data_access_policy_name      = "cbot-ecan-data-access-policy-${include.parent.locals.environment}"
+  oass_network_security_policy_name = "providers-ia-pub-net-policy-${include.parent.locals.environment}"
+  oass_encryption_policy_name       = "providers-ia-encrypt-policy-${include.parent.locals.environment}"
+  oass_data_access_policy_name      = "providers-ia-data-access-policy-${include.parent.locals.environment}"
 
 
   kb_role_arn   = dependency.kb_exec_role.outputs.role_arn
