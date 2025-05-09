@@ -17,10 +17,6 @@ dependency "s3" {
   }
 }
 
-locals {
-  global = include.parent.locals.global
-}
-
 inputs = {
   use_custom_name       = true
   name                  = "${include.parent.inputs.namespace}-${include.parent.inputs.project}-${include.parent.inputs.environment}-bedrock-agent"
