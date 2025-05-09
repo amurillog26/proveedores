@@ -215,3 +215,34 @@ variable "kb_association_description" {
   description = "Description of the knowledge base association"
   default     = "Bedrock knowledge base associated with agent"
 }
+
+
+variable "agent_action_group_lambda_arn" {
+  type        = string
+  description = "ARN of the Lambda function that handles agent action group requests"
+  default     = ""
+}
+
+variable "create_agent_version" {
+  type        = bool
+  description = "Whether to create an agent version"
+  default     = false
+}
+
+variable "create_agent_alias" {
+  type        = bool
+  description = "Whether to create an agent alias"
+  default     = false
+}
+
+variable "agent_version_instruction" {
+  type        = string
+  description = "Instructions for the agent version that tell it how to operate"
+  default     = ""
+}
+
+variable "agent_alias_name" {
+  type        = string
+  description = "Name of the agent alias"
+  default     = "production"
+}

@@ -64,8 +64,16 @@ inputs = {
   agent_resource_role_arn = dependency.kb_exec_role.outputs.role_arn
   agent_foundation_model  = "anthropic.claude-3-5-sonnet-20240620-v1:0"  # Claude 3.5 Sonnet
   agent_description       = "Bedrock Agent for P2P procurement information using Claude 3.5 Sonnet"
-  idle_session_ttl_in_seconds = 600
-  agent_instruction       = <<EOF
+  # Added action group configuration
+  agent_action_group_lambda_arn = "arn:aws:lambda:us-east-1:745315529340:function:p2pMax"
+  
+  # Version and alias configuration
+  create_agent_version = true
+  create_agent_alias   = true
+  agent_alias_name     = "production"
+  
+  # The prompt provided by the user
+  agent_version_instruction = <<EOF
 You are Max P2P, a useful virtual assistant that runs the next tasks:
 - Get Account Statement: to run this task you will receive the provider id or "código de proveedor" in Spanish from end user and then get the answer using the function account_statement within the lambda p2pMax
  
