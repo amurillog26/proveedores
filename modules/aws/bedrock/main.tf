@@ -208,16 +208,16 @@ resource "aws_bedrockagent_data_source" "forex_kb" {
 
 # Nuevos recursos para Bedrock Agent
 resource "aws_bedrockagent_agent" "this" {
-  count                     = var.create_agent ? 1 : 0
-  agent_name                = var.agent_name
-  agent_resource_role_arn   = var.agent_resource_role_arn
+  count                       = var.create_agent ? 1 : 0
+  agent_name                  = var.agent_name
+  agent_resource_role_arn     = var.agent_resource_role_arn
   idle_session_ttl_in_seconds = var.idle_session_ttl_in_seconds
-  foundation_model          = var.agent_foundation_model
-  description               = var.agent_description
-  instruction               = var.agent_instruction
-  agent_collaboration       = var.agent_collaboration
-  prepare_agent             = var.agent_prepare_agent
-  
+  foundation_model            = var.agent_foundation_model
+  description                 = var.agent_description
+  instruction                 = var.agent_instruction
+  agent_collaboration         = var.agent_collaboration
+  prepare_agent               = var.agent_prepare_agent
+
   dynamic "guardrail_configuration" {
     for_each = var.agent_guardrail_identifier != null && var.agent_guardrail_version != null ? [1] : []
     content {
@@ -225,7 +225,7 @@ resource "aws_bedrockagent_agent" "this" {
       guardrail_version    = var.agent_guardrail_version
     }
   }
-  
+
   dynamic "memory_configuration" {
     for_each = var.agent_memory_enabled ? [1] : []
     content {
@@ -239,9 +239,9 @@ resource "aws_bedrockagent_agent" "this" {
 
 # Usar el nombre correcto del recurso según la documentación oficial
 resource "aws_bedrockagent_agent_knowledge_base_association" "this" {
-  count            = var.create_agent ? 1 : 0
-  agent_id         = aws_bedrockagent_agent.this[0].id
-  knowledge_base_id = aws_bedrockagent_knowledge_base.kb_bedrock.id
-  description      = var.kb_association_description
+  count                = var.create_agent ? 1 : 0
+  agent_id             = aws_bedrockagent_agent.this[0].id
+  knowledge_base_id    = aws_bedrockagent_knowledge_base.kb_bedrock.id
+  description          = var.kb_association_description
   knowledge_base_state = "ENABLED"
 }
