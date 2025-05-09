@@ -245,3 +245,24 @@ resource "aws_bedrockagent_agent_knowledge_base_association" "this" {
   description          = var.kb_association_description
   knowledge_base_state = "ENABLED"
 }
+
+resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
+  count             = var.create_agent ? 1 : 0
+  agent_id          = aws_bedrockagent_agent.this[0].id
+  agent_version     = "DRAFT"
+  action_group_name = "P2PFunctions"
+  description       = "Finance P2P (Procure to Pay) functions for provider inquiries"
+
+  # Define the Lambda function ARN for your action group
+  action_group_executor {
+    lambda = var.agent_action_group_lambda_arn
+  }
+}
+
+resource "aws_bedrockagent_agent_alias" "production" {
+  count = var.create_agent && var.create_agent_version && var.create_agent_alias ? 1 : 0
+
+  agent_id         = aws_bedrockagent_agent.this[0].id
+  agent_alias_name = var.agent_alias_name
+  description      = "Production alias for ${var.agent_name}"
+}

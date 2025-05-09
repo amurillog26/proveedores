@@ -68,7 +68,7 @@ inputs = {
   agent_action_group_lambda_arn = "arn:aws:lambda:us-east-1:745315529340:function:p2pMax"
   
   # Version and alias configuration
-  create_agent_version = true
+#   create_agent_version = true
   create_agent_alias   = true
   agent_alias_name     = "production"
   
