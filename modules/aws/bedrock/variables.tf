@@ -124,3 +124,94 @@ variable "oass_owner_policy_access" {
   description = "Additional role to assume for accessing oass collection indexes"
   default     = "AWSReservedSSO_ADC-CloudEngineer_55d664f2862c3727"
 }
+
+# Variables for Bedrock Agent
+variable "create_agent" {
+  type        = bool
+  description = "Whether to create a Bedrock agent"
+  default     = false
+}
+
+variable "agent_name" {
+  type        = string
+  description = "Name of the Bedrock agent"
+  default     = ""
+}
+
+variable "agent_resource_role_arn" {
+  type        = string
+  description = "ARN of the IAM role with permissions to invoke API operations on the agent"
+  default     = ""
+}
+
+variable "agent_foundation_model" {
+  type        = string
+  description = "Foundation model used for orchestration by the agent"
+  default     = "anthropic.claude-v2"
+}
+
+variable "agent_description" {
+  type        = string
+  description = "Description of the Bedrock agent"
+  default     = ""
+}
+
+variable "idle_session_ttl_in_seconds" {
+  type        = number
+  description = "Number of seconds for which Amazon Bedrock keeps information about a user's conversation with the agent"
+  default     = 900
+}
+
+variable "agent_instruction" {
+  type        = string
+  description = "Instructions that tell the agent what it should do and how it should interact with users"
+  default     = ""
+}
+
+variable "agent_collaboration" {
+  type        = string
+  description = "Agents collaboration role"
+  default     = "DISABLED"
+}
+
+variable "agent_prepare_agent" {
+  type        = bool
+  description = "Whether to prepare the agent after creation or modification"
+  default     = true
+}
+
+variable "agent_guardrail_identifier" {
+  type        = string
+  description = "Unique identifier of the guardrail"
+  default     = null
+}
+
+variable "agent_guardrail_version" {
+  type        = string
+  description = "Version of the guardrail"
+  default     = null
+}
+
+variable "agent_memory_enabled" {
+  type        = bool
+  description = "Whether to enable memory for the agent"
+  default     = false
+}
+
+variable "agent_memory_enabled_types" {
+  type        = list(string)
+  description = "The type of memory being stored by the agent"
+  default     = ["CONVERSATION_HISTORY"]
+}
+
+variable "agent_memory_storage_days" {
+  type        = number
+  description = "The number of days the agent is configured to retain the conversational context"
+  default     = 30
+}
+
+variable "kb_association_description" {
+  type        = string
+  description = "Description of the knowledge base association"
+  default     = "Bedrock knowledge base associated with agent"
+}

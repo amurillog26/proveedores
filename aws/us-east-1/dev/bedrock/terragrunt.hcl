@@ -27,6 +27,15 @@ dependency "kb_exec_role" {
   }
 }
 
+dependency "agent_role" {
+  config_path = "../iam_role/agent"
+
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "fmt", "show"]
+  mock_outputs = {
+    role_arn  = "arn:aws:iam::123456789012:role/FakeAgentRole"
+    role_name = "fake_agent_role_name"
+  }
+}
 
 locals {
   name       = "${include.parent.locals.global.project}-${include.parent.locals.environment}"
@@ -46,7 +55,6 @@ inputs = {
   oass_encryption_policy_name       = "p2p-ia-encrypt-policy-${include.parent.locals.environment}"
   oass_data_access_policy_name      = "p2p-ia-data-access-policy-${include.parent.locals.environment}"
 
-
   kb_role_arn   = dependency.kb_exec_role.outputs.role_arn
   kb_role_name  = dependency.kb_exec_role.outputs.role_name
   s3_bucket_arn = dependency.s3.outputs.arn
@@ -60,4 +68,19 @@ inputs = {
   t_account_id  = include.parent.locals.account_id
   t_external_id = include.parent.locals.global.external_id
   t_tf_role     = include.parent.locals.global.trust_role
+  
+  # Configuración del agente Bedrock
+  create_agent            = true
+  agent_name              = "${local.name}-agent"
+  agent_resource_role_arn = dependency.agent_role.outputs.role_arn
+  agent_foundation_model  = "anthropic.claude-v2"
+  agent_description       = "Bedrock Agent for P2P procurement information"
+  idle_session_ttl_in_seconds = 600
+  agent_instruction       = "You are an assistant for Holcim's procurement team. Your job is to help answer questions about procurement processes, policies, and vendor information. Be polite, concise, and helpful."
+  
+  agent_memory_enabled         = true
+  agent_memory_enabled_types   = ["CONVERSATION_HISTORY"]
+  agent_memory_storage_days    = 14
+  
+  kb_association_description = "Knowledge base for procurement information"
 }

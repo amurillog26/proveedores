@@ -87,29 +87,8 @@ resource "aws_opensearchserverless_access_policy" "data_access_policy" {
   ])
 }
 
-# Get the model arn given model_id
-# data "aws_bedrock_foundation_model" "kb" {
-#   model_id = var.kb_model_id
-# }
-
-# resource "aws_iam_role_policy" "bedrock_kb_forex_kb_model" {
-#   name = "AmazonBedrockFoundationModelPolicyForKnowledgeBase_chatbot"
-#   role = var.kb_role_name
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Action   = "bedrock:InvokeModel"
-#         Effect   = "Allow"
-#         Resource = data.aws_bedrock_foundation_model.kb.model_arn
-#       }
-#     ]
-#   })
-# }
-
 # We need specific permissions in the collection_id;
 # collection_name seems to not been working
-# TODO: rework with tf-modules
 resource "aws_iam_role_policy" "bedrock_kb_hrchat_oss" {
   name = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
   # role = aws_iam_role.bedrock_kb_forex_kb.name
@@ -225,4 +204,42 @@ resource "aws_bedrockagent_data_source" "forex_kb" {
       bucket_arn = var.s3_bucket_arn
     }
   }
+}
+
+# Nuevos recursos para Bedrock Agent
+resource "aws_bedrockagent_agent" "this" {
+  count                     = var.create_agent ? 1 : 0
+  agent_name                = var.agent_name
+  agent_resource_role_arn   = var.agent_resource_role_arn
+  idle_session_ttl_in_seconds = var.idle_session_ttl_in_seconds
+  foundation_model          = var.agent_foundation_model
+  description               = var.agent_description
+  instruction               = var.agent_instruction
+  agent_collaboration       = var.agent_collaboration
+  prepare_agent             = var.agent_prepare_agent
+  
+  dynamic "guardrail_configuration" {
+    for_each = var.agent_guardrail_identifier != null && var.agent_guardrail_version != null ? [1] : []
+    content {
+      guardrail_identifier = var.agent_guardrail_identifier
+      guardrail_version    = var.agent_guardrail_version
+    }
+  }
+  
+  dynamic "memory_configuration" {
+    for_each = var.agent_memory_enabled ? [1] : []
+    content {
+      enabled_memory_types = var.agent_memory_enabled_types
+      storage_days         = var.agent_memory_storage_days
+    }
+  }
+
+  tags = module.this.tags
+}
+
+resource "aws_bedrockagent_knowledge_base_association" "this" {
+  count            = var.create_agent ? 1 : 0
+  agent_id         = aws_bedrockagent_agent.this[0].id
+  knowledge_base_id = aws_bedrockagent_knowledge_base.kb_bedrock.id
+  description      = var.kb_association_description
 }
