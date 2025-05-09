@@ -69,7 +69,7 @@ inputs = {
   agent_instruction       = "You are an assistant for Holcim's procurement team. Your job is to help answer questions about procurement processes, policies, and vendor information. Be polite, concise, and helpful."
   
   agent_memory_enabled         = true
-  agent_memory_enabled_types   = ["CONVERSATION_HISTORY"]
+  agent_memory_enabled_types   = ["SESSION_SUMMARY"]
   agent_memory_storage_days    = 14
   
   kb_association_description = "Knowledge base for procurement information"
