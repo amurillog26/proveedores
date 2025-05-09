@@ -38,6 +38,19 @@
                 "arn:aws:s3:::lhlanonp-providerp2p-kb-input",
                 "arn:aws:s3:::lhlanonp-providerp2p-kb-input/*"
             ]
+        },
+        {
+            "Sid": "KMSDecryptStatement",
+            "Effect": "Allow",
+            "Action": [
+                "kms:Decrypt",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey"
+            ],
+            "Resource": [
+                "arn:aws:kms:us-east-1:745315529340:key/mrk-b7bfa71ac5ef4cd88e655c992dbee5bd",
+                "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
+            ]
         }
     ]
 }
