@@ -8,7 +8,8 @@
                 "bedrock:InvokeModel"
             ],
             "Resource": [
-                "arn:aws:bedrock:${aws_region}::foundation-model/amazon.titan-embed-text-v2:0"
+                "arn:aws:bedrock:${aws_region}::foundation-model/amazon.titan-embed-text-v2:0",
+                "arn:aws:bedrock:${aws_region}::foundation-model/anthropic.claude-v2"
             ]
         },
         {

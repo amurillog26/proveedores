@@ -27,15 +27,6 @@ dependency "kb_exec_role" {
   }
 }
 
-dependency "agent_role" {
-  config_path = "../iam_role/agent"
-
-  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "fmt", "show"]
-  mock_outputs = {
-    role_arn  = "arn:aws:iam::123456789012:role/FakeAgentRole"
-  }
-}
-
 locals {
   name       = "${include.parent.locals.global.project}-${include.parent.locals.environment}"
   region     = include.parent.locals.global.aws_region
@@ -71,7 +62,7 @@ inputs = {
   # Configuración del agente Bedrock
   create_agent            = true
   agent_name              = "${local.name}-agent"
-  agent_resource_role_arn = dependency.agent_role.outputs.role_arn
+  agent_resource_role_arn = dependency.kb_exec_role.outputs.role_arn  # Usamos el mismo rol que para Knowledge Base
   agent_foundation_model  = "anthropic.claude-v2"
   agent_description       = "Bedrock Agent for P2P procurement information"
   idle_session_ttl_in_seconds = 600
