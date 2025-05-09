@@ -15,33 +15,29 @@
             ]
         },
         {
-			"Sid": "OpenSearchServerlessAPIAccessAllStatement",
-			"Effect": "Allow",
-			"Action": [
-				"aoss:APIAccessAll"
-			],
-			"Resource": [
-				"arn:aws:aoss:${aws_region}:${account_id}:collection/*"
-			]
-		},
+            "Sid": "OpenSearchServerlessAPIAccessAllStatement",
+            "Effect": "Allow",
+            "Action": [
+                "aoss:APIAccessAll"
+            ],
+            "Resource": [
+                "arn:aws:aoss:${aws_region}:${account_id}:collection/*"
+            ]
+        },
         {
             "Sid": "S3ListBucketStatement",
             "Effect": "Allow",
             "Action": [
                 "s3:ListBucket",
-                "s3:GetObject"
+                "s3:GetObject",
+                "s3:GetObjectVersion"
             ],
             "Resource": [
-                "${s3_bucket_arn}/",
-                "${s3_bucket_arn}/*"
-            ],
-            "Condition": {
-                "StringEquals": {
-                    "aws:ResourceAccount": [
-                        "${account_id}"
-                    ]
-                }
-            }
+                "${s3_bucket_arn}",
+                "${s3_bucket_arn}/*",
+                "arn:aws:s3:::lhlanonp-providerp2p-kb-input",
+                "arn:aws:s3:::lhlanonp-providerp2p-kb-input/*"
+            ]
         }
     ]
 }
