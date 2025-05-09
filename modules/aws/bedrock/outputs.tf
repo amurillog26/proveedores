@@ -24,11 +24,6 @@ output "kb_association_id" {
   value       = var.create_agent ? aws_bedrockagent_agent_knowledge_base_association.this[0].id : null
 }
 
-output "agent_version_id" {
-  description = "ID of the agent version"
-  value       = var.create_agent && var.create_agent_version ? aws_bedrockagent_agent_version.this[0].agent_version : null
-}
-
 output "agent_alias_id" {
   description = "ID of the agent alias"
   value       = var.create_agent && var.create_agent_version && var.create_agent_alias ? aws_bedrockagent_agent_alias.production[0].agent_alias_id : null
