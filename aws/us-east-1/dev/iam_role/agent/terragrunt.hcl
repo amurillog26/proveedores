@@ -1,4 +1,4 @@
-include "parent" {
+include "root" {
   path   = find_in_parent_folders()
   expose = true
 }
@@ -17,28 +17,32 @@ dependency "s3" {
   }
 }
 
+locals {
+  global = include.root.locals.global
+}
+
 inputs = {
   use_custom_name       = true
-  name                  = "${include.parent.inputs.namespace}-${include.parent.inputs.project}-${include.parent.inputs.environment}-bedrock-agent"
+  name                  = "${include.root.inputs.namespace}-${include.root.inputs.project}-${include.root.inputs.environment}-bedrock-agent"
   role_description      = "IAM Role for Bedrock Agent to access resources."
   assume_role_file_path = "${get_terragrunt_dir()}/../agent-assume-role.json"
   template_vars = {
     vars = {
-      aws_region = include.parent.locals.global.aws_region
-      account_id = include.parent.locals.account_id
+      aws_region = include.root.locals.global.aws_region
+      account_id = include.root.locals.account_id
     }
   }
 
   iam_policies = {
     agent-policy = {
-      name               = "${include.parent.inputs.namespace}-${include.parent.inputs.project}-${include.parent.inputs.environment}-bedrock-agent-policy"
+      name               = "${include.root.inputs.namespace}-${include.root.inputs.project}-${include.root.inputs.environment}-bedrock-agent-policy"
       description        = "Allow Bedrock Agent to invoke models and access S3."
       template_file_path = "${get_terragrunt_dir()}/../agent-policy.json"
       use_custom_name    = true
       template_vars = {
         vars = {
-          aws_region    = include.parent.locals.global.aws_region
-          account_id    = include.parent.locals.account_id
+          aws_region    = include.root.locals.global.aws_region
+          account_id    = include.root.locals.account_id
           s3_bucket_arn = dependency.s3.outputs.arn
         }
       }

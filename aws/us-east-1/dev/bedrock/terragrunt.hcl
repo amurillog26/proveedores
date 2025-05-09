@@ -33,7 +33,6 @@ dependency "agent_role" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "fmt", "show"]
   mock_outputs = {
     role_arn  = "arn:aws:iam::123456789012:role/FakeAgentRole"
-    role_name = "fake_agent_role_name"
   }
 }
 
