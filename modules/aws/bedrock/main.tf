@@ -237,9 +237,11 @@ resource "aws_bedrockagent_agent" "this" {
   tags = module.this.tags
 }
 
-resource "aws_bedrockagent_knowledge_base_association" "this" {
+# Usar el nombre correcto del recurso según la documentación oficial
+resource "aws_bedrockagent_agent_knowledge_base_association" "this" {
   count            = var.create_agent ? 1 : 0
   agent_id         = aws_bedrockagent_agent.this[0].id
   knowledge_base_id = aws_bedrockagent_knowledge_base.kb_bedrock.id
   description      = var.kb_association_description
+  knowledge_base_state = "ENABLED"
 }
