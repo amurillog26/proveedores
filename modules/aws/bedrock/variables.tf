@@ -201,7 +201,7 @@ variable "agent_memory_enabled" {
 variable "agent_memory_enabled_types" {
   type        = list(string)
   description = "The type of memory being stored by the agent"
-  default     = ["SESSION_SUMMARY"]  # Cambiado de CONVERSATION_HISTORY a SESSION_SUMMARY
+  default     = ["SESSION_SUMMARY"]
 }
 
 variable "agent_memory_storage_days" {
