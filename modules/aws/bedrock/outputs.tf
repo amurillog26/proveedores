@@ -21,5 +21,5 @@ output "agent_version" {
 
 output "kb_association_id" {
   description = "ID of the knowledge base association"
-  value       = var.create_agent ? aws_bedrockagent_knowledge_base_association.this[0].id : null
+  value       = var.create_agent ? aws_bedrockagent_agent_knowledge_base_association.this[0].id : null
 }
