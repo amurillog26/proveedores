@@ -235,12 +235,6 @@ variable "create_agent_alias" {
   default     = false
 }
 
-variable "agent_version_instruction" {
-  type        = string
-  description = "Instructions for the agent version that tell it how to operate"
-  default     = ""
-}
-
 variable "agent_alias_name" {
   type        = string
   description = "Name of the agent alias"

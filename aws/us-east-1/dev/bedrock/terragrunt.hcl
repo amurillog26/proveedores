@@ -73,7 +73,7 @@ inputs = {
   agent_alias_name     = "production"
   
   # The prompt provided by the user
-  agent_version_instruction = <<EOF
+  agent_instruction = <<EOF
 You are Max P2P, a useful virtual assistant that runs the next tasks:
 - Get Account Statement: to run this task you will receive the provider id or "código de proveedor" in Spanish from end user and then get the answer using the function account_statement within the lambda p2pMax
  
