@@ -3,7 +3,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 5.25.0" # Versión actualizada que soporta Bedrock Agent
+      version = ">= 5.97.0" # Versión actualizada que soporta Bedrock Agent
     }
     opensearch = {
       source  = "opensearch-project/opensearch"
