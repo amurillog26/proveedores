@@ -42,6 +42,37 @@
         "kms:GenerateDataKey*"
       ],
       "Resource": "${vars.kms_key_arn}"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "glue:GetDatabases",
+        "glue:GetTable",
+        "glue:GetTables",
+        "glue:GetPartition",
+        "glue:GetPartitions",
+        "glue:CreateTable",
+        "glue:UpdateTable",
+        "glue:DeleteTable",
+        "lakeformation:GetDataAccess",
+        "lakeformation:ListPermissions",
+        "lakeformation:ListResources"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeAgent",
+        "bedrock:ListAgents",
+        "bedrock:ListAgentAliases",
+        "bedrock:GetAgent"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:${vars.region}:${vars.account_id}:agent/*",
+        "arn:aws:bedrock:${vars.region}::foundation-model/*"
+      ]
     }
   ]
 }
