@@ -266,7 +266,7 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
           required      = true
         }
       }
-      
+
       functions {
         name        = "invoice_statement"
         description = "Obtener estado de factura"
@@ -283,7 +283,7 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
           required      = true
         }
       }
-      
+
       functions {
         name        = "special_payment_status"
         description = "Consultar estado de pago especial"
@@ -294,7 +294,7 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
           required      = true
         }
       }
-      
+
       functions {
         name        = "payment_details"
         description = "Obtener detalles de pago"
@@ -311,7 +311,7 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
           required      = true
         }
       }
-      
+
       functions {
         name        = "travel_expenditures"
         description = "Confirmación de pago de gastos de viaje"
@@ -328,7 +328,7 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
           required      = true
         }
       }
-      
+
       functions {
         name        = "purchase_delivery_date"
         description = "Fecha de entrega de orden"
