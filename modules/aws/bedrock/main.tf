@@ -253,177 +253,103 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
   action_group_name = "P2PFunctions"
   description       = "Finance P2P (Procure to Pay) functions for provider inquiries"
 
-  # Agregamos el esquema de funciones
-  function_schema = jsonencode({
-    "openapi" = "3.0.0",
-    "info" = {
-      "title" = "P2P Functions API",
-      "version" = "1.0.0"
-    },
-    "paths" = {
-      "/account_statement" = {
-        "post" = {
-          "description" = "Obtener estado de cuenta de proveedor",
-          "operationId" = "account_statement",
-          "parameters" = [],
-          "requestBody" = {
-            "content" = {
-              "application/json" = {
-                "schema" = {
-                  "type" = "object",
-                  "required" = ["provider_id"],
-                  "properties" = {
-                    "provider_id" = {
-                      "type" = "string",
-                      "description" = "ID del proveedor"
-                    }
-                  }
-                }
-              }
-            }
-          }
+  # Definimos el esquema de funciones usando la sintaxis de bloques correcta
+  function_schema {
+    member_functions {
+      functions {
+        name        = "account_statement"
+        description = "Obtener estado de cuenta de proveedor"
+        parameters {
+          map_block_key = "provider_id"
+          type          = "string"
+          description   = "ID del proveedor o código de proveedor"
+          required      = true
         }
-      },
-      "/invoice_statement" = {
-        "post" = {
-          "description" = "Obtener estado de factura",
-          "operationId" = "invoice_statement",
-          "parameters" = [],
-          "requestBody" = {
-            "content" = {
-              "application/json" = {
-                "schema" = {
-                  "type" = "object",
-                  "required" = ["provider_id", "invoice_number"],
-                  "properties" = {
-                    "provider_id" = {
-                      "type" = "string",
-                      "description" = "ID del proveedor"
-                    },
-                    "invoice_number" = {
-                      "type" = "string",
-                      "description" = "Número de factura"
-                    }
-                  }
-                }
-              }
-            }
-          }
+      }
+      
+      functions {
+        name        = "invoice_statement"
+        description = "Obtener estado de factura"
+        parameters {
+          map_block_key = "provider_id"
+          type          = "string"
+          description   = "ID del proveedor o código de proveedor"
+          required      = true
         }
-      },
-      "/special_payment_status" = {
-        "post" = {
-          "description" = "Consultar estado de pago especial",
-          "operationId" = "special_payment_status",
-          "requestBody" = {
-            "content" = {
-              "application/json" = {
-                "schema" = {
-                  "type" = "object",
-                  "required" = ["special_payment_number"],
-                  "properties" = {
-                    "special_payment_number" = {
-                      "type" = "string",
-                      "description" = "Número de pago especial"
-                    }
-                  }
-                }
-              }
-            }
-          }
+        parameters {
+          map_block_key = "invoice_number"
+          type          = "string"
+          description   = "Número de factura"
+          required      = true
         }
-      },
-      "/payment_details" = {
-        "post" = {
-          "description" = "Obtener detalles de pago",
-          "operationId" = "payment_details",
-          "requestBody" = {
-            "content" = {
-              "application/json" = {
-                "schema" = {
-                  "type" = "object",
-                  "required" = ["transaction_number", "payment_date"],
-                  "properties" = {
-                    "transaction_number" = {
-                      "type" = "string",
-                      "description" = "Número de transacción"
-                    },
-                    "payment_date" = {
-                      "type" = "string",
-                      "description" = "Fecha de pago"
-                    }
-                  }
-                }
-              }
-            }
-          }
+      }
+      
+      functions {
+        name        = "special_payment_status"
+        description = "Consultar estado de pago especial"
+        parameters {
+          map_block_key = "special_payment_number"
+          type          = "string"
+          description   = "Número del pago especial"
+          required      = true
         }
-      },
-      "/travel_expenditures" = {
-        "post" = {
-          "description" = "Confirmación de pago de gastos de viaje",
-          "operationId" = "travel_expenditures",
-          "requestBody" = {
-            "content" = {
-              "application/json" = {
-                "schema" = {
-                  "type" = "object",
-                  "required" = ["employee_id", "invoice_number"],
-                  "properties" = {
-                    "employee_id" = {
-                      "type" = "string",
-                      "description" = "ID del empleado"
-                    },
-                    "invoice_number" = {
-                      "type" = "string",
-                      "description" = "Número de factura"
-                    }
-                  }
-                }
-              }
-            }
-          }
+      }
+      
+      functions {
+        name        = "payment_details"
+        description = "Obtener detalles de pago"
+        parameters {
+          map_block_key = "transaction_number"
+          type          = "string"
+          description   = "Número de transacción"
+          required      = true
         }
-      },
-      "/purchase_delivery_date" = {
-        "post" = {
-          "description" = "Fecha de entrega de orden",
-          "operationId" = "purchase_delivery_date",
-          "requestBody" = {
-            "content" = {
-              "application/json" = {
-                "schema" = {
-                  "type" = "object",
-                  "required" = ["purchase_order", "purchase_position"],
-                  "properties" = {
-                    "purchase_order" = {
-                      "type" = "string",
-                      "description" = "Número de orden de compra"
-                    },
-                    "purchase_position" = {
-                      "type" = "string",
-                      "description" = "Posición de compra"
-                    }
-                  }
-                }
-              }
-            }
-          }
+        parameters {
+          map_block_key = "payment_date"
+          type          = "string"
+          description   = "Fecha de pago"
+          required      = true
+        }
+      }
+      
+      functions {
+        name        = "travel_expenditures"
+        description = "Confirmación de pago de gastos de viaje"
+        parameters {
+          map_block_key = "employee_id"
+          type          = "string"
+          description   = "ID del empleado"
+          required      = true
+        }
+        parameters {
+          map_block_key = "invoice_number"
+          type          = "string"
+          description   = "Número de factura"
+          required      = true
+        }
+      }
+      
+      functions {
+        name        = "purchase_delivery_date"
+        description = "Fecha de entrega de orden"
+        parameters {
+          map_block_key = "purchase_order"
+          type          = "string"
+          description   = "Número de orden de compra"
+          required      = true
+        }
+        parameters {
+          map_block_key = "purchase_position"
+          type          = "string"
+          description   = "Posición de compra"
+          required      = true
         }
       }
     }
-  })
+  }
 
-  # Define the Lambda function ARN for your action group
+  # Mantenemos el ejecutor Lambda
   action_group_executor {
     lambda = var.agent_action_group_lambda_arn
   }
-}
-
-resource "aws_bedrockagent_agent_alias" "production" {
-  count = var.create_agent && var.create_agent_version && var.create_agent_alias ? 1 : 0
-
-  agent_id         = aws_bedrockagent_agent.this[0].id
-  agent_alias_name = var.agent_alias_name
-  description      = "Production alias for ${var.agent_name}"
 }
