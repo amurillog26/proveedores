@@ -29,6 +29,7 @@ locals {
   policy_file_path      = "${get_terragrunt_dir()}/policies/lambda-policy.tpl"
   assume_role_file_path = "${get_terragrunt_dir()}/policies/assume-role.tpl"
   app_name              = local.global.app_name
+  account_id            = include.parent.locals.account_id
 }
 
 inputs = {
@@ -74,6 +75,8 @@ inputs = {
       kb_bucket_arn     = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
       query_bucket_arn  = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}"
       kms_key_arn       = "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
+      account_id        = local.account_id
+      region            = local.global.aws_region
     }
   }
   
