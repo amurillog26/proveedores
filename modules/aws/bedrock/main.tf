@@ -26,17 +26,7 @@ resource "aws_opensearchserverless_security_policy" "network_policy" {
         }
       ],
       AllowFromPublic = true,
-      Description     = "Permitir acceso público a los endpoints y dashboards"
-    },
-    {
-      Rules = [
-        {
-          ResourceType = "dashboard",
-          Resource     = ["dashboard/${var.oass_collection_name}"]
-        }
-      ],
-      AllowFromPublic = true,
-      Description     = "Permitir acceso a dashboard de OpenSearch"
+      Description     = "Permitir acceso público a los endpoints y dashboards de OpenSearch"
     }
   ])
 }
