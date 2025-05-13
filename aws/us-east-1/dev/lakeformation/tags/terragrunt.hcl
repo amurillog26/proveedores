@@ -12,13 +12,13 @@ locals {
   project = local.global.project
 }
 
-inputs = {
-  lf_tags = {
-    project1 = ["poc-ia-providersp2p-la"]
-  }
+# inputs = {
+#   lf_tags = {
+#     project = ["poc-ia-providersp2p-la"]
+#   }
   
-  enable_admins = true
-  additional_principal_sso = ""
-  lf_tag_key_pair = "*"
-  additional_principal_sso_lf_tag_key_pair = "*"
-}
+#   enable_admins = true
+#   additional_principal_sso = ""
+#   lf_tag_key_pair = "*"
+#   additional_principal_sso_lf_tag_key_pair = "*"
+# }

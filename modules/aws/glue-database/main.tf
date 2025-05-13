@@ -28,7 +28,7 @@ resource "aws_lakeformation_resource_lf_tags" "this" {
   }
 
   dynamic "lf_tag" {
-    for_each = merge({ project1 : module.this.tags.project }, var.lf_tags)
+    for_each = merge({ project : module.this.tags.project }, var.lf_tags)
     content {
       key   = lf_tag.key
       value = lf_tag.value

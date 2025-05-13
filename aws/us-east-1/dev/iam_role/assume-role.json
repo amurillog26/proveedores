@@ -13,8 +13,23 @@
                     "aws:SourceAccount": "${account_id}"
                 },
                 "ArnLike": {
-                    "aws:SourceArn": "arn:aws:bedrock:${aws_region}:${account_id}:knowledge-base/*"
-                    
+                    "aws:SourceArn": "arn:aws:bedrock:${aws_region}:${account_id}:knowledge-base/*"                    
+                }
+            }
+        },
+        {
+            "Sid": "AmazonBedrockAgentTrustPolicy",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "bedrock.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+                "StringEquals": {
+                    "aws:SourceAccount": "${account_id}"
+                },
+                "ArnLike": {
+                    "aws:SourceArn": "arn:aws:bedrock:${aws_region}:${account_id}:agent/*"
                 }
             }
         }

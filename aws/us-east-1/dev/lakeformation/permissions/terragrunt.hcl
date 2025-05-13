@@ -36,7 +36,7 @@ inputs = {
       permissions   = ["CREATE_TABLE", "ALTER", "DROP", "DESCRIBE"]
       resource_type = "DATABASE"
       lf_tags = {
-        project1 = {
+        project = {
           values = ["poc-ia-providersp2p-la"]
         }
       }
@@ -47,7 +47,7 @@ inputs = {
       permissions   = ["SELECT", "INSERT", "DROP", "DESCRIBE"]
       resource_type = "TABLE"
       lf_tags = {
-        project1 = {
+        project = {
           values = ["poc-ia-providersp2p-la"]
         }
       }

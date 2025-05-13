@@ -16,12 +16,16 @@ resource "aws_opensearchserverless_security_policy" "network_policy" {
   name        = var.oass_network_security_policy_name
   description = var.oass_collection_desc
   type        = "network"
-
   policy = jsonencode([
     {
+      Description = "Public access to collection and Dashboards endpoint for example collection",
       Rules = [
         {
           ResourceType = "collection",
+          Resource     = ["collection/${var.oass_collection_name}"]
+        },
+        {
+          ResourceType = "dashboard"
           Resource     = ["collection/${var.oass_collection_name}"]
         }
       ],
@@ -29,7 +33,6 @@ resource "aws_opensearchserverless_security_policy" "network_policy" {
     }
   ])
 }
-
 resource "aws_opensearchserverless_security_policy" "encryption_policy" {
   name        = var.oass_encryption_policy_name
   description = "Encryption policy using AWS owned key"
@@ -87,40 +90,74 @@ resource "aws_opensearchserverless_access_policy" "data_access_policy" {
   ])
 }
 
-# Get the model arn given model_id
-# data "aws_bedrock_foundation_model" "kb" {
-#   model_id = var.kb_model_id
-# }
-
-# resource "aws_iam_role_policy" "bedrock_kb_forex_kb_model" {
-#   name = "AmazonBedrockFoundationModelPolicyForKnowledgeBase_chatbot"
-#   role = var.kb_role_name
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Action   = "bedrock:InvokeModel"
-#         Effect   = "Allow"
-#         Resource = data.aws_bedrock_foundation_model.kb.model_arn
-#       }
-#     ]
-#   })
-# }
-
 # We need specific permissions in the collection_id;
 # collection_name seems to not been working
-# TODO: rework with tf-modules
 resource "aws_iam_role_policy" "bedrock_kb_hrchat_oss" {
   name = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
-  # role = aws_iam_role.bedrock_kb_forex_kb.name
   role = var.kb_role_name
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Action   = "aoss:APIAccessAll"
-        Effect   = "Allow"
-        Resource = aws_opensearchserverless_collection.this.arn
+        Sid    = "BedrockInvokeModelStatement"
+        Effect = "Allow"
+        Action = [
+          "bedrock:InvokeModel"
+        ]
+        Resource = [
+          "arn:aws:bedrock:${var.region}::foundation-model/amazon.titan-embed-text-v2:0",
+          "arn:aws:bedrock:${var.region}::foundation-model/anthropic.claude-v2",
+          "arn:aws:bedrock:${var.region}::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "arn:aws:bedrock:${var.region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+        ]
+      },
+      {
+        Sid    = "OpenSearchServerlessAPIAccessAllStatement"
+        Effect = "Allow"
+        Action = [
+          "aoss:APIAccessAll"
+        ]
+        Resource = [
+          aws_opensearchserverless_collection.this.arn
+        ]
+      },
+      {
+        Sid    = "S3AccessStatement"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:GetObjectVersion"
+        ]
+        Resource = [
+          var.s3_bucket_arn,
+          "${var.s3_bucket_arn}/*"
+        ]
+      },
+      {
+        Sid    = "KMSAccessStatement"
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = [
+          "arn:aws:kms:us-east-1:745315529340:key/mrk-b7bfa71ac5ef4cd88e655c992dbee5bd",
+          "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
+        ]
+      },
+      {
+        Sid    = "BedrockKnowledgeBaseAccess"
+        Effect = "Allow"
+        Action = [
+          "bedrock:ListKnowledgeBases",
+          "bedrock:GetKnowledgeBase",
+          "bedrock:RetrieveAndGenerate"
+        ]
+        Resource = [
+          "arn:aws:bedrock:${var.region}:${var.t_account_id}:knowledge-base/*"
+        ]
       }
     ]
   })
@@ -224,5 +261,153 @@ resource "aws_bedrockagent_data_source" "forex_kb" {
     s3_configuration {
       bucket_arn = var.s3_bucket_arn
     }
+  }
+}
+
+# Nuevos recursos para Bedrock Agent
+resource "aws_bedrockagent_agent" "this" {
+  count                       = var.create_agent ? 1 : 0
+  agent_name                  = var.agent_name
+  agent_resource_role_arn     = var.agent_resource_role_arn
+  idle_session_ttl_in_seconds = var.idle_session_ttl_in_seconds
+  foundation_model            = var.agent_foundation_model
+  description                 = var.agent_description
+  instruction                 = var.agent_instruction
+  agent_collaboration         = var.agent_collaboration
+  prepare_agent               = var.agent_prepare_agent
+
+  dynamic "guardrail_configuration" {
+    for_each = var.agent_guardrail_identifier != null && var.agent_guardrail_version != null ? [1] : []
+    content {
+      guardrail_identifier = var.agent_guardrail_identifier
+      guardrail_version    = var.agent_guardrail_version
+    }
+  }
+
+  dynamic "memory_configuration" {
+    for_each = var.agent_memory_enabled ? [1] : []
+    content {
+      enabled_memory_types = var.agent_memory_enabled_types
+      storage_days         = var.agent_memory_storage_days
+    }
+  }
+
+  tags = module.this.tags
+}
+
+# Usar el nombre correcto del recurso según la documentación oficial
+resource "aws_bedrockagent_agent_knowledge_base_association" "this" {
+  count                = var.create_agent ? 1 : 0
+  agent_id             = aws_bedrockagent_agent.this[0].id
+  knowledge_base_id    = aws_bedrockagent_knowledge_base.kb_bedrock.id
+  description          = var.kb_association_description
+  knowledge_base_state = "ENABLED"
+}
+
+resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
+  count             = var.create_agent ? 1 : 0
+  agent_id          = aws_bedrockagent_agent.this[0].id
+  agent_version     = "DRAFT"
+  action_group_name = "P2PFunctions"
+  description       = "Finance P2P (Procure to Pay) functions for provider inquiries"
+
+  # Definimos el esquema de funciones usando la sintaxis de bloques correcta
+  function_schema {
+    member_functions {
+      functions {
+        name        = "account_statement"
+        description = "Obtener estado de cuenta de proveedor"
+        parameters {
+          map_block_key = "provider_id"
+          type          = "string"
+          description   = "ID del proveedor o código de proveedor"
+          required      = true
+        }
+      }
+
+      functions {
+        name        = "invoice_statement"
+        description = "Obtener estado de factura"
+        parameters {
+          map_block_key = "provider_id"
+          type          = "string"
+          description   = "ID del proveedor o código de proveedor"
+          required      = true
+        }
+        parameters {
+          map_block_key = "invoice_number"
+          type          = "string"
+          description   = "Número de factura"
+          required      = true
+        }
+      }
+
+      functions {
+        name        = "special_payment_status"
+        description = "Consultar estado de pago especial"
+        parameters {
+          map_block_key = "special_payment_number"
+          type          = "string"
+          description   = "Número del pago especial"
+          required      = true
+        }
+      }
+
+      functions {
+        name        = "payment_details"
+        description = "Obtener detalles de pago"
+        parameters {
+          map_block_key = "transaction_number"
+          type          = "string"
+          description   = "Número de transacción"
+          required      = true
+        }
+        parameters {
+          map_block_key = "payment_date"
+          type          = "string"
+          description   = "Fecha de pago"
+          required      = true
+        }
+      }
+
+      functions {
+        name        = "travel_expenditures"
+        description = "Confirmación de pago de gastos de viaje"
+        parameters {
+          map_block_key = "employee_id"
+          type          = "string"
+          description   = "ID del empleado"
+          required      = true
+        }
+        parameters {
+          map_block_key = "invoice_number"
+          type          = "string"
+          description   = "Número de factura"
+          required      = true
+        }
+      }
+
+      functions {
+        name        = "purchase_delivery_date"
+        description = "Fecha de entrega de orden"
+        parameters {
+          map_block_key = "purchase_order"
+          type          = "string"
+          description   = "Número de orden de compra"
+          required      = true
+        }
+        parameters {
+          map_block_key = "purchase_position"
+          type          = "string"
+          description   = "Posición de compra"
+          required      = true
+        }
+      }
+    }
+  }
+
+  # Mantenemos el ejecutor Lambda
+  action_group_executor {
+    lambda = var.agent_action_group_lambda_arn
   }
 }

@@ -8,37 +8,74 @@
                 "bedrock:InvokeModel"
             ],
             "Resource": [
-                "arn:aws:bedrock:${aws_region}::foundation-model/amazon.titan-embed-text-v2:0"
+                "arn:aws:bedrock:${aws_region}::foundation-model/amazon.titan-embed-text-v2:0",
+                "arn:aws:bedrock:${aws_region}::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0",
+                "arn:aws:bedrock:${aws_region}::foundation-model/anthropic.claude-3-5-sonnet-v2:0",
+                "arn:aws:bedrock:${aws_region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
             ]
         },
         {
-			"Sid": "OpenSearchServerlessAPIAccessAllStatement",
-			"Effect": "Allow",
-			"Action": [
-				"aoss:APIAccessAll"
-			],
-			"Resource": [
-				"arn:aws:aoss:${aws_region}:${account_id}:collection/*"
-			]
-		},
+            "Sid": "OpenSearchServerlessAPIAccessAllStatement",
+            "Effect": "Allow",
+            "Action": [
+                "aoss:APIAccessAll"
+            ],
+            "Resource": [
+                "arn:aws:aoss:${aws_region}:${account_id}:collection/*"
+            ]
+        },
         {
             "Sid": "S3ListBucketStatement",
             "Effect": "Allow",
             "Action": [
                 "s3:ListBucket",
-                "s3:GetObject"
+                "s3:GetObject",
+                "s3:GetObjectVersion"
             ],
             "Resource": [
-                "${s3_bucket_arn}/",
-                "${s3_bucket_arn}/*"
+                "${s3_bucket_arn}",
+                "${s3_bucket_arn}/*",
+                "arn:aws:s3:::lhlanonp-providerp2p-kb-input",
+                "arn:aws:s3:::lhlanonp-providerp2p-kb-input/*"
+            ]
+        },
+        {
+            "Sid": "KMSDecryptStatement",
+            "Effect": "Allow",
+            "Action": [
+                "kms:Decrypt",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey"
             ],
-            "Condition": {
-                "StringEquals": {
-                    "aws:ResourceAccount": [
-                        "${account_id}"
-                    ]
-                }
-            }
+            "Resource": [
+                "arn:aws:kms:us-east-1:745315529340:key/mrk-b7bfa71ac5ef4cd88e655c992dbee5bd",
+                "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
+            ]
+        },
+        {
+            "Sid": "BedrockKnowledgeBaseAccess",
+            "Effect": "Allow",
+            "Action": [
+                "bedrock:ListKnowledgeBases",
+                "bedrock:GetKnowledgeBase",
+                "bedrock:RetrieveAndGenerate",
+                "bedrock:Retrieve"
+            ],
+            "Resource": [
+                "arn:aws:bedrock:${aws_region}:${account_id}:knowledge-base/*"
+            ]
+        },
+        {
+            "Sid": "BedrockAgentAccess",
+            "Effect": "Allow",
+            "Action": [
+                "bedrock:InvokeAgent",
+                "bedrock:GetAgent",
+                "bedrock:ListAgents"
+            ],
+            "Resource": [
+                "arn:aws:bedrock:${aws_region}:${account_id}:agent/*"
+            ]
         }
     ]
 }
