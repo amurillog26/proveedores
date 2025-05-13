@@ -16,21 +16,23 @@ resource "aws_opensearchserverless_security_policy" "network_policy" {
   name        = var.oass_network_security_policy_name
   description = var.oass_collection_desc
   type        = "network"
-
   policy = jsonencode([
     {
+      Description = "Public access to collection and Dashboards endpoint for example collection",
       Rules = [
         {
           ResourceType = "collection",
           Resource     = ["collection/${var.oass_collection_name}"]
+        },
+        {
+          ResourceType = "dashboard"
+          Resource     = ["collection/${var.oass_collection_name}"]
         }
       ],
-      AllowFromPublic = true,
-      Description     = "Permitir acceso público a los endpoints y dashboards de OpenSearch"
+      AllowFromPublic = true
     }
   ])
 }
-
 resource "aws_opensearchserverless_security_policy" "encryption_policy" {
   name        = var.oass_encryption_policy_name
   description = "Encryption policy using AWS owned key"
