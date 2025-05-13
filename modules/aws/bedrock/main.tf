@@ -26,7 +26,7 @@ resource "aws_opensearchserverless_security_policy" "network_policy" {
         }
       ],
       AllowFromPublic = true,
-      Description    = "Permitir acceso público a los endpoints y dashboards"
+      Description     = "Permitir acceso público a los endpoints y dashboards"
     },
     {
       Rules = [
