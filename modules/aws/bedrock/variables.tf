@@ -245,5 +245,4 @@ variable "region" {
   type        = string
   description = "AWS region for the Bedrock agent"
   default     = "us-east-1"
-  
 }
