@@ -135,7 +135,7 @@ resource "aws_iam_role_policy" "bedrock_kb_hrchat_oss" {
         ]
       },
       {
-        Sid    = "KMSAccessStatement" 
+        Sid    = "KMSAccessStatement"
         Effect = "Allow"
         Action = [
           "kms:Decrypt",
