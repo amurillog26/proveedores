@@ -311,14 +311,13 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
   action_group_name = "P2PFunctions"
   description       = "Finance P2P (Procure to Pay) functions for provider inquiries"
 
-  # Definimos el esquema de funciones usando la sintaxis de bloques correcta
   function_schema {
     member_functions {
       functions {
         name        = "account_statement"
         description = "Obtener estado de cuenta de proveedor"
         parameters {
-          map_block_key = "provider_id"
+          map_block_key = "provider_code"  # Cambiado de provider_id a provider_code para coincidir con la función
           type          = "string"
           description   = "ID del proveedor o código de proveedor"
           required      = true
@@ -329,7 +328,7 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
         name        = "invoice_statement"
         description = "Obtener estado de factura"
         parameters {
-          map_block_key = "provider_id"
+          map_block_key = "provider_code"  # Cambiado de provider_id a provider_code
           type          = "string"
           description   = "ID del proveedor o código de proveedor"
           required      = true
@@ -340,13 +339,19 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
           description   = "Número de factura"
           required      = true
         }
+        parameters {
+          map_block_key = "country"  # Agregado country como parámetro opcional
+          type          = "string"
+          description   = "País del proveedor (default: Mexico)"
+          required      = false
+        }
       }
 
       functions {
         name        = "special_payment_status"
         description = "Consultar estado de pago especial"
         parameters {
-          map_block_key = "special_payment_number"
+          map_block_key = "request_number"  # Cambiado de special_payment_number a request_number
           type          = "string"
           description   = "Número del pago especial"
           required      = true
@@ -357,15 +362,15 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
         name        = "payment_details"
         description = "Obtener detalles de pago"
         parameters {
-          map_block_key = "transaction_number"
+          map_block_key = "provider_code"  # Cambiado de transaction_number a provider_code
           type          = "string"
-          description   = "Número de transacción"
+          description   = "ID del proveedor o código de proveedor"
           required      = true
         }
         parameters {
-          map_block_key = "payment_date"
+          map_block_key = "compensation_date"  # Cambiado de payment_date a compensation_date
           type          = "string"
-          description   = "Fecha de pago"
+          description   = "Fecha de pago en formato dd/mm/yyyy"
           required      = true
         }
       }
@@ -374,9 +379,9 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
         name        = "travel_expenditures"
         description = "Confirmación de pago de gastos de viaje"
         parameters {
-          map_block_key = "employee_id"
+          map_block_key = "provider_code"  # Cambiado de employee_id a provider_code
           type          = "string"
-          description   = "ID del empleado"
+          description   = "ID del proveedor o código de proveedor"
           required      = true
         }
         parameters {
@@ -406,8 +411,8 @@ resource "aws_bedrockagent_agent_action_group" "p2p_functions" {
     }
   }
 
-  # Mantenemos el ejecutor Lambda
+  # Asegúrate que esta línea esté apuntando al ARN correcto de tu nueva función
   action_group_executor {
-    lambda = var.agent_action_group_lambda_arn
+    lambda = "arn:aws:lambda:${var.region}:${var.t_account_id}:function:${var.name}-p2pMax"
   }
 }
