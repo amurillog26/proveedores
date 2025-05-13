@@ -49,12 +49,14 @@ inputs = {
   # Handler y configuración del runtime
   handler_name = "index.handler"
   lambda_settings = {
-    runtime       = "nodejs18.x"
+    runtime       = "python3.12"
     architectures = ["x86_64"]
     timeout       = 60
     memory_size   = 256
   }
   
+  layers = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python312:16"]
+
   # Variables de entorno
   env_variables = {
     ENV             = "dev"
