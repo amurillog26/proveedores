@@ -94,15 +94,70 @@ resource "aws_opensearchserverless_access_policy" "data_access_policy" {
 # collection_name seems to not been working
 resource "aws_iam_role_policy" "bedrock_kb_hrchat_oss" {
   name = "AmazonBedrockOSSPolicyForKnowledgeBase_chatbot"
-  # role = aws_iam_role.bedrock_kb_forex_kb.name
   role = var.kb_role_name
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Action   = "aoss:APIAccessAll"
-        Effect   = "Allow"
-        Resource = aws_opensearchserverless_collection.this.arn
+        Sid    = "BedrockInvokeModelStatement"
+        Effect = "Allow"
+        Action = [
+          "bedrock:InvokeModel"
+        ]
+        Resource = [
+          "arn:aws:bedrock:${var.region}::foundation-model/amazon.titan-embed-text-v2:0",
+          "arn:aws:bedrock:${var.region}::foundation-model/anthropic.claude-v2",
+          "arn:aws:bedrock:${var.region}::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "arn:aws:bedrock:${var.region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+        ]
+      },
+      {
+        Sid    = "OpenSearchServerlessAPIAccessAllStatement"
+        Effect = "Allow"
+        Action = [
+          "aoss:APIAccessAll"
+        ]
+        Resource = [
+          aws_opensearchserverless_collection.this.arn
+        ]
+      },
+      {
+        Sid    = "S3AccessStatement"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:GetObjectVersion"
+        ]
+        Resource = [
+          var.s3_bucket_arn,
+          "${var.s3_bucket_arn}/*"
+        ]
+      },
+      {
+        Sid    = "KMSAccessStatement" 
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = [
+          "arn:aws:kms:us-east-1:745315529340:key/mrk-b7bfa71ac5ef4cd88e655c992dbee5bd",
+          "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
+        ]
+      },
+      {
+        Sid    = "BedrockKnowledgeBaseAccess"
+        Effect = "Allow"
+        Action = [
+          "bedrock:ListKnowledgeBases",
+          "bedrock:GetKnowledgeBase",
+          "bedrock:RetrieveAndGenerate"
+        ]
+        Resource = [
+          "arn:aws:bedrock:${var.region}:${var.t_account_id}:knowledge-base/*"
+        ]
       }
     ]
   })
