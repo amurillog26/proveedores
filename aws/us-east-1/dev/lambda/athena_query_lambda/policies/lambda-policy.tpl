@@ -23,7 +23,9 @@
         "${vars.kb_bucket_arn}",
         "${vars.kb_bucket_arn}/*",
         "${vars.query_bucket_arn}",
-        "${vars.query_bucket_arn}/*"
+        "${vars.query_bucket_arn}/*",
+        "${vars.athena_results_arn}",
+        "${vars.athena_results_arn}/*"
       ]
     },
     {
@@ -59,6 +61,22 @@
         "lakeformation:ListResources"
       ],
       "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "athena:StartQueryExecution",
+        "athena:GetQueryExecution",
+        "athena:GetQueryResults",
+        "athena:StopQueryExecution",
+        "athena:ListDataCatalogs",
+        "athena:ListDatabases",
+        "athena:ListTableMetadata",
+        "athena:ListQueryExecutions"
+      ],
+      "Resource": [
+        "arn:aws:athena:${vars.region}:${vars.account_id}:workgroup/*"
+      ]
     },
     {
       "Effect": "Allow",

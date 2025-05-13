@@ -2,25 +2,43 @@ include "parent" {
   path   = find_in_parent_folders()
   expose = true
 }
+
 terraform {
   source = "git::git@gitlab.com:holcim-org/americas-core/tools/tf-modules.git///?ref=aws/lambda-function_1.4.0"
 }
+
 dependency "kb_bucket" {
   config_path = "../../s3/kb_bucket"
   mock_outputs = {
     bucket = "mock-kb"
   }
 }
+
 dependency "query_bucket" {
   config_path = "../../s3/query_bucket"
   mock_outputs = {
     bucket = "mock-query"
   }
 }
+
 dependency "input_bucket" {
   config_path = "../../s3/input_bucket"
   mock_outputs = {
     bucket = "mock-input"
+  }
+}
+
+dependency "athena_results_bucket" {
+  config_path = "../../s3/athena_results_bucket"
+  mock_outputs = {
+    bucket = "mock-athena-results"
+  }
+}
+
+dependency "glue_database" {
+  config_path = "../../athena/glue_catalog"
+  mock_outputs = {
+    db_name = "mock-glue-database"
   }
 }
 
@@ -34,10 +52,10 @@ locals {
 
 inputs = {
   # Configuración básica de Lambda
-  name        = "${local.app_name}-athena-query-lambda"
-  description = "Lambda function for processing Athena queries"
+  name        = "${local.app_name}-p2pMax"
+  description = "Lambda function for P2P Procurement Bedrock Agent integration"
   
-  # Usar el archivo ZIP en la raíz del directorio
+  # Usar archivo ZIP con código Python
   filename = "${get_terragrunt_dir()}/function.zip"
   
   # Desactivar la generación del código fuente
@@ -46,39 +64,44 @@ inputs = {
   # Deshabilitar el uso de S3 para el código
   from_s3_object = false
   
-  # Handler y configuración del runtime
-  handler_name = "index.handler"
+  # Handler y configuración del runtime para Python
+  handler_name = "p2pMax.lambda_handler"
   lambda_settings = {
     runtime       = "python3.12"
     architectures = ["x86_64"]
-    timeout       = 60
-    memory_size   = 256
+    timeout       = 120
+    memory_size   = 512
   }
   
+  # Agregar el Layer AWSSDKPandas para Python
   layers = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python312:16"]
-
-  # Variables de entorno
+  
+  # Variables de entorno necesarias para el código
   env_variables = {
     ENV             = "dev"
     KB_BUCKET       = dependency.kb_bucket.outputs.bucket
     QUERY_BUCKET    = dependency.query_bucket.outputs.bucket
     INPUT_BUCKET    = dependency.input_bucket.outputs.bucket
-    LOG_LEVEL       = "info"
+    ATHENA_DATABASE = dependency.glue_database.outputs.db_name
+    S3_OUTPUT       = "s3://${dependency.athena_results_bucket.outputs.bucket}/athena-results/"
+    REGION          = local.global.aws_region
+    LOG_LEVEL       = "INFO"
   }
   
   # Usar las claves KMS reales
   kms_lmb_arn = "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
   
-  # Configuración IAM
+  # Configuración IAM - Permisos ampliados
   policy_file_name = local.policy_file_path
   policy_vars = {
     vars = {
-      input_bucket_arn  = "arn:aws:s3:::${dependency.input_bucket.outputs.bucket}"
-      kb_bucket_arn     = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
-      query_bucket_arn  = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}"
-      kms_key_arn       = "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
-      account_id        = local.account_id
-      region            = local.global.aws_region
+      input_bucket_arn    = "arn:aws:s3:::${dependency.input_bucket.outputs.bucket}"
+      kb_bucket_arn       = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
+      query_bucket_arn    = "arn:aws:s3:::${dependency.query_bucket.outputs.bucket}"
+      athena_results_arn  = "arn:aws:s3:::${dependency.athena_results_bucket.outputs.bucket}"
+      kms_key_arn         = "arn:aws:kms:us-east-1:745315529340:key/mrk-23695674f5234cee877cd8358b7187bc"
+      account_id          = local.account_id
+      region              = local.global.aws_region
     }
   }
   
@@ -89,9 +112,9 @@ inputs = {
   
   # Event triggers
   allowed_triggers = {
-    S3Upload = {
-      service    = "s3"
-      source_arn = "arn:aws:s3:::${dependency.kb_bucket.outputs.bucket}"
+    BedrockAgent = {
+      service    = "bedrock"
+      source_arn = "arn:aws:bedrock:${local.global.aws_region}:${local.account_id}:agent/*"
     }
   }
   
@@ -101,4 +124,21 @@ inputs = {
   
   # Habilitar X-Ray tracing
   tracing_mode = "Active"
+  
+  # Agregar política de recursos para permitir que Bedrock invoque la función
+  resource_policy_statements = {
+    allow-bedrock-agent = {
+      effect    = "Allow"
+      actions   = ["lambda:InvokeFunction"]
+      principals = [{
+        type        = "Service"
+        identifiers = ["bedrock.amazonaws.com"]
+      }]
+      condition = {
+        ArnLike = {
+          "AWS:SourceArn" = "arn:aws:bedrock:${local.global.aws_region}:${local.account_id}:agent/*"
+        }
+      }
+    }
+  }
 }
