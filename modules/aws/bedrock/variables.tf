@@ -240,3 +240,10 @@ variable "agent_alias_name" {
   description = "Name of the agent alias"
   default     = "production"
 }
+
+variable "region" {
+  type        = string
+  description = "AWS region for the Bedrock agent"
+  default     = "us-east-1"
+  
+}
