@@ -180,9 +180,9 @@ provider "opensearch" {
 }
 
 resource "opensearch_index" "hrchat_kb" {
-  provider                       = opensearch.cc
-  name                           = var.vector_index_name
-  mappings                       = <<-EOF
+  provider      = opensearch.cc
+  name          = var.vector_index_name
+  mappings      = <<-EOF
     {
       "properties": {
         "${var.oass_collection_name}-vector": {
