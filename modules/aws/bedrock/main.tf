@@ -185,28 +185,34 @@ resource "time_sleep" "aws_iam_role_policy_bedrock_kb_hrchat_oss" {
 resource "opensearch_index" "hrchat_kb" {
   # provider      = opensearch.cc
   name          = var.vector_index_name
-  mappings = jsonencode({
-    properties = {
-      "${local.aoss.metadata_field}" = {
-        type  = "text"
-        index = false
-      }
-
-      "${local.aoss.text_field}" = {
-        type  = "text"
-        index = true
-      }
-
-      "${local.aoss.vector_field}" = {
-        type      = "knn_vector"
-        dimension = "${local.aoss.vector_dimension}"
-        method = {
-          engine = "faiss"
-          name   = "hnsw"
+  mappings      = <<-EOF
+    {
+      "properties": {
+        "${var.oass_collection_name}-vector": {
+          "type": "knn_vector",
+          "dimension": 1024,
+          "method": {
+            "name": "hnsw",
+            "engine": "faiss",
+            "parameters": {
+              "m": 16,
+              "ef_construction": 512
+            },
+            "space_type": "l2"
+          }
+        },
+        "AMAZON_BEDROCK_METADATA": {
+          "type": "text",
+          "index": "false"
+        },
+        "AMAZON_BEDROCK_TEXT_CHUNK": {
+          "type": "text",
+          "index": "true"
         }
       }
     }
-  })
+  EOF
+  force_destroy = true
   depends_on = [
     aws_opensearchserverless_collection.this,
     aws_opensearchserverless_access_policy.data_access_policy,
