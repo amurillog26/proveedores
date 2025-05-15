@@ -177,6 +177,8 @@ provider "opensearch" {
   aws_assume_role_arn         = join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role])
   aws_assume_role_external_id = var.t_external_id
   healthcheck                 = false
+  insecure                    = true
+  sniff                       = false
 }
 
 resource "opensearch_index" "hrchat_kb" {
@@ -212,7 +214,8 @@ resource "opensearch_index" "hrchat_kb" {
   force_destroy = true
   depends_on = [
     aws_opensearchserverless_collection.this,
-    aws_opensearchserverless_access_policy.data_access_policy
+    aws_opensearchserverless_access_policy.data_access_policy,
+    aws_opensearchserverless_security_policy.network_policy,
   ]
 }
 
