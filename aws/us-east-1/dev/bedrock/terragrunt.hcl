@@ -28,7 +28,7 @@ dependency "kb_exec_role" {
 }
 
 locals {
-  name       = "${include.parent.locals.global.project}"
+  name       = "${include.parent.locals.global.project}-${include.parent.locals.environment}"
   region     = include.parent.locals.global.aws_region
   account_id = include.parent.locals.account_id
 }
@@ -40,17 +40,17 @@ inputs = {
   id_account     = local.account_id
 
   #AWS OpenSearch Serverless related variables
-  oass_collection_name              = "${include.parent.locals.global.project}"
-  oass_network_security_policy_name = "p2p-ia-pub-net-policy"
-  oass_encryption_policy_name       = "p2p-ia-encrypt-policy"
-  oass_data_access_policy_name      = "p2p-ia-data-access-policy"
+  oass_collection_name              = "${include.parent.locals.global.project}-${include.parent.locals.environment}"
+  oass_network_security_policy_name = "p2p-ia-pub-net-policy-${include.parent.locals.environment}"
+  oass_encryption_policy_name       = "p2p-ia-encrypt-policy-${include.parent.locals.environment}"
+  oass_data_access_policy_name      = "p2p-ia-data-access-policy-${include.parent.locals.environment}"
 
   kb_role_arn   = dependency.kb_exec_role.outputs.role_arn
   kb_role_name  = dependency.kb_exec_role.outputs.role_name
   s3_bucket_arn = dependency.s3.outputs.arn
 
-  vector_index_name      = "${include.parent.locals.global.project}-default-index"
-  vector_field           = "${include.parent.locals.global.project}-vector"
+  vector_index_name      = "${include.parent.locals.global.project}-${include.parent.locals.environment}-default-index"
+  vector_field           = "${include.parent.locals.global.project}-${include.parent.locals.environment}-vector"
   kb_embedding_model_arn = "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0"
   kb_model_id            = "amazon.titan-embed-text-v2:0"
   kb_configuration_type  = "VECTOR"
