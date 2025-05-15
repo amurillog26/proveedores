@@ -209,7 +209,7 @@ resource "opensearch_index" "hrchat_kb" {
       }
     }
   EOF
-  force_destroy                  = true
+  force_destroy = true
   depends_on = [
     aws_opensearchserverless_collection.this,
     aws_opensearchserverless_access_policy.data_access_policy
