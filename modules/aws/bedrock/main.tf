@@ -171,19 +171,19 @@ resource "time_sleep" "aws_iam_role_policy_bedrock_kb_hrchat_oss" {
 }
 
 # Note that the healthcheck argument is set to false because the
-# #client health check does not really work with OpenSearch Serverless.
-# provider "opensearch" {
-#   alias                       = "cc"
-#   url                         = aws_opensearchserverless_collection.this.collection_endpoint
-#   aws_assume_role_arn         = join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role])
-#   aws_assume_role_external_id = var.t_external_id
-#   healthcheck                 = false
-#   insecure                    = true
-#   sniff                       = false
-# }
+#client health check does not really work with OpenSearch Serverless.
+provider "opensearch" {
+  alias                       = "cc"
+  url                         = aws_opensearchserverless_collection.this.collection_endpoint
+  aws_assume_role_arn         = join("", ["arn:aws:iam::", var.t_account_id, ":role/", var.t_tf_role])
+  aws_assume_role_external_id = var.t_external_id
+  healthcheck                 = false
+  insecure                    = true
+  sniff                       = false
+}
 
 resource "opensearch_index" "hrchat_kb" {
-  # provider      = opensearch.cc
+  provider      = opensearch.cc
   name          = var.vector_index_name
   mappings      = <<-EOF
     {
